@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@layer base {
+  * {
+    @apply border-border-subtle;
+  }
+  body {
+    @apply bg-bg-main text-text-main font-sans;
+  }
+}
+
+@layer utilities {
+  /* Custom Scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #18181b;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #3f3f46;
+    border-radius: 5px;
+    border: 2px solid #18181b;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #52525b;
+  }
+
+  /* Selection */
+  .selection\:bg-primary\/30::selection {
+    background-color: rgba(146, 19, 236, 0.3);
+  }
+  .selection\:text-white::selection {
+    color: white;
+  }
+}
+

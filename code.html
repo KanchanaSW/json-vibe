@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>JSON Vibe - Editor</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#9213ec",
+                        accent: "#22d3ee",
+                        "bg-main": "#0f0f11",
+                        "bg-panel": "#18181b",
+                        "bg-surface": "#27272a",
+                        "border-subtle": "#27272a",
+                        "border-active": "#3f3f46",
+                        "text-main": "#e4e4e7",
+                        "text-muted": "#a1a1aa",
+                        "code-key": "#9cdcfe",
+                        "code-string": "#ce9178",
+                        "code-number": "#b5cea8",
+                        "code-bool": "#569cd6",
+                    },
+                    fontFamily: {
+                        sans: ["Inter", "sans-serif"],
+                        mono: ["JetBrains Mono", "monospace"],
+                    },
+                    boxShadow: {
+                        'neon': '0 0 10px rgba(146, 19, 236, 0.3)',
+                        'neon-active': '0 0 15px rgba(34, 211, 238, 0.2)',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #18181b; 
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #3f3f46; 
+            border-radius: 5px;
+            border: 2px solid #18181b;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #52525b; 
+        }
+
+        /* Syntax Highlighting Utilities */
+        .token-key { color: #9cdcfe; }
+        .token-string { color: #ce9178; }
+        .token-number { color: #b5cea8; }
+        .token-bool { color: #569cd6; }
+        .token-punct { color: #d4d4d4; }
+        
+        .line-number {
+            counter-increment: line;
+        }
+    </style>
+</head>
+<body class="bg-bg-main text-text-main font-sans h-screen flex flex-col overflow-hidden selection:bg-primary/30 selection:text-white">
+<!-- Header -->
+<header class="h-14 border-b border-border-subtle bg-bg-panel flex items-center justify-between px-4 z-20 shrink-0">
+<div class="flex items-center gap-6">
+<!-- Logo -->
+<div class="flex items-center gap-2 text-white">
+<span class="material-symbols-outlined text-primary" style="font-size: 24px;">data_object</span>
+<h1 class="font-mono text-lg font-bold tracking-tight">JSON Vibe</h1>
+</div>
+<!-- Toolbar Actions -->
+<div class="hidden md:flex items-center h-8 bg-bg-main/50 rounded-lg p-1 border border-border-subtle">
+<button class="px-3 h-full rounded text-xs font-medium text-text-muted hover:text-white hover:bg-bg-surface transition-colors">Format</button>
+<div class="w-px h-3 bg-border-subtle mx-1"></div>
+<button class="px-3 h-full rounded text-xs font-medium text-text-muted hover:text-white hover:bg-bg-surface transition-colors">Minify</button>
+<div class="w-px h-3 bg-border-subtle mx-1"></div>
+<button class="px-3 h-full rounded text-xs font-medium text-green-400 hover:bg-bg-surface transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined" style="font-size: 14px;">check_circle</span>
+                    Valid
+                </button>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<!-- Secondary Actions -->
+<button class="size-9 flex items-center justify-center rounded-lg text-text-muted hover:text-white hover:bg-bg-surface border border-transparent hover:border-border-subtle transition-all" title="Settings">
+<span class="material-symbols-outlined" style="font-size: 20px;">settings</span>
+</button>
+<!-- Share Button -->
+<button class="flex items-center gap-2 h-9 px-4 bg-primary hover:bg-primary/90 text-white text-sm font-semibold rounded-lg shadow-neon transition-all">
+<span class="material-symbols-outlined" style="font-size: 18px;">share</span>
+<span>Share</span>
+</button>
+</div>
+</header>
+<!-- Main Workspace -->
+<main class="flex-1 flex overflow-hidden">
+<!-- Left Panel: Code Editor -->
+<section class="flex-1 min-w-[300px] flex flex-col bg-bg-main relative group/editor">
+<!-- Editor Content -->
+<div class="flex-1 overflow-auto custom-scrollbar flex font-mono text-sm leading-6 pt-4">
+<!-- Gutter (Line Numbers) -->
+<div class="w-12 shrink-0 flex flex-col items-end px-3 text-text-muted/30 select-none bg-bg-main">
+<div>1</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div><div>7</div><div>8</div><div>9</div><div>10</div><div>11</div><div>12</div><div>13</div><div>14</div><div>15</div><div>16</div><div>17</div><div>18</div>
+</div>
+<!-- Code Surface -->
+<div class="flex-1 px-4 pb-10 focus:outline-none whitespace-pre relative" contenteditable="true" spellcheck="false">
+<span class="token-punct">{</span>
+<span class="token-key">"project"</span><span class="token-punct">:</span> <span class="token-string">"JSON Vibe"</span><span class="token-punct">,</span>
+<span class="token-key">"version"</span><span class="token-punct">:</span> <span class="token-number">1.0</span><span class="token-punct">,</span>
+<span class="token-key">"description"</span><span class="token-punct">:</span> <span class="token-string">"A modern, ultra-minimalist dark mode JSON Editor."</span><span class="token-punct">,</span>
+<span class="token-key">"settings"</span><span class="token-punct">:</span> <span class="token-punct">{</span>
+<span class="token-key">"theme"</span><span class="token-punct">:</span> <span class="token-string">"dracula-dark"</span><span class="token-punct">,</span>
+<span class="token-key">"autoSave"</span><span class="token-punct">:</span> <span class="token-bool">true</span><span class="token-punct">,</span>
+<span class="token-key">"fontSize"</span><span class="token-punct">:</span> <span class="token-number">14</span>
+<span class="token-punct">}</span><span class="token-punct">,</span>
+<span class="token-key">"features"</span><span class="token-punct">:</span> <span class="token-punct">[</span>
+<span class="token-string">"Syntax Highlighting"</span><span class="token-punct">,</span>
+<span class="token-string">"Visual Tree View"</span><span class="token-punct">,</span>
+<span class="token-string">"Real-time Validation"</span><span class="token-punct">,</span>
+<span class="token-string">"Cloud Sync"</span>
+<span class="token-punct">]</span><span class="token-punct">,</span>
+<span class="token-key">"users"</span><span class="token-punct">:</span> <span class="token-punct">[</span>
+<span class="token-punct">{</span> <span class="token-key">"id"</span><span class="token-punct">:</span> <span class="token-number">101</span><span class="token-punct">,</span> <span class="token-key">"role"</span><span class="token-punct">:</span> <span class="token-string">"admin"</span><span class="token-punct">,</span> <span class="token-key">"active"</span><span class="token-punct">:</span> <span class="token-bool">true</span> <span class="token-punct">}</span><span class="token-punct">,</span>
+<span class="token-punct">{</span> <span class="token-key">"id"</span><span class="token-punct">:</span> <span class="token-number">102</span><span class="token-punct">,</span> <span class="token-key">"role"</span><span class="token-punct">:</span> <span class="token-string">"editor"</span><span class="token-punct">,</span> <span class="token-key">"active"</span><span class="token-punct">:</span> <span class="token-bool">false</span> <span class="token-punct">}</span>
+<span class="token-punct">]</span><span class="token-punct">,</span>
+<span class="token-key">"meta"</span><span class="token-punct">:</span> <span class="token-bool">null</span>
+<span class="token-punct">}</span>
+<!-- Active Line indicator (Absolute positioned for demo) -->
+<div class="absolute top-[88px] left-0 w-full h-6 bg-primary/10 border-l-2 border-primary pointer-events-none opacity-50"></div>
+</div>
+</div>
+<!-- Footer Status -->
+<div class="h-8 border-t border-border-subtle bg-bg-main flex items-center justify-between px-4 text-xs font-mono text-text-muted select-none">
+<div class="flex gap-4">
+<span>Ln 4, Col 22</span>
+<span>UTF-8</span>
+<span>JSON</span>
+</div>
+<div class="flex gap-4">
+<span>582 chars</span>
+</div>
+</div>
+</section>
+<!-- Resizer Handle -->
+<div class="w-1 bg-bg-main hover:bg-primary/50 cursor-col-resize flex items-center justify-center border-l border-r border-border-subtle z-10 transition-colors">
+<div class="h-8 w-0.5 rounded-full bg-border-active"></div>
+</div>
+<!-- Right Panel: Visual Tree -->
+<section class="w-[45%] min-w-[320px] flex flex-col bg-bg-panel border-l border-border-subtle shadow-xl">
+<!-- Tree Toolbar -->
+<div class="h-10 border-b border-border-subtle flex items-center justify-between px-3 bg-bg-panel">
+<div class="flex items-center gap-1">
+<button class="p-1.5 rounded hover:bg-bg-surface text-text-muted hover:text-white transition-colors" title="Expand All">
+<span class="material-symbols-outlined" style="font-size: 18px;">unfold_more</span>
+</button>
+<button class="p-1.5 rounded hover:bg-bg-surface text-text-muted hover:text-white transition-colors" title="Collapse All">
+<span class="material-symbols-outlined" style="font-size: 18px;">unfold_less</span>
+</button>
+<div class="h-4 w-px bg-border-subtle mx-1"></div>
+<button class="p-1.5 rounded hover:bg-bg-surface text-text-muted hover:text-white transition-colors" title="Filter">
+<span class="material-symbols-outlined" style="font-size: 18px;">filter_list</span>
+</button>
+</div>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-2 top-1.5 text-text-muted pointer-events-none" style="font-size: 16px;">search</span>
+<input class="bg-bg-main border border-border-subtle rounded px-2 pl-8 py-1 text-xs text-text-main focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 w-32 transition-all placeholder:text-text-muted/50" placeholder="Search keys..." type="text"/>
+</div>
+</div>
+<!-- Tree Content -->
+<div class="flex-1 overflow-auto custom-scrollbar p-2 space-y-1">
+<!-- Root Object Wrapper -->
+<div class="pl-2 border-l border-border-active/30 ml-2">
+<!-- Node: Project -->
+<div class="group flex items-start gap-2 p-1.5 rounded hover:bg-bg-surface cursor-pointer border border-transparent hover:border-border-subtle transition-all">
+<span class="material-symbols-outlined text-text-muted/50 mt-0.5" style="font-size: 16px;">drag_indicator</span>
+<div class="flex-1">
+<div class="flex items-center gap-2">
+<span class="font-mono text-sm text-code-key">project</span>
+<span class="text-text-muted text-xs">:</span>
+<span class="font-mono text-sm text-code-string">"JSON Vibe"</span>
+</div>
+</div>
+</div>
+<!-- Node: Version -->
+<div class="group flex items-start gap-2 p-1.5 rounded hover:bg-bg-surface cursor-pointer border border-transparent hover:border-border-subtle transition-all">
+<span class="material-symbols-outlined text-text-muted/50 mt-0.5" style="font-size: 16px;">drag_indicator</span>
+<div class="flex-1">
+<div class="flex items-center gap-2">
+<span class="font-mono text-sm text-code-key">version</span>
+<span class="text-text-muted text-xs">:</span>
+<span class="font-mono text-sm text-code-number">1.0</span>
+</div>
+</div>
+</div>
+<!-- Node: Settings (Collapsed Object) -->
+<div class="group flex flex-col gap-1 p-1.5 rounded bg-bg-surface/30 border border-border-subtle transition-all shadow-sm">
+<div class="flex items-center gap-2 cursor-pointer w-full">
+<span class="material-symbols-outlined text-text-muted hover:text-white transition-colors" style="font-size: 18px;">keyboard_arrow_down</span>
+<span class="font-mono text-sm text-code-key font-bold">settings</span>
+<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-bg-surface text-text-muted border border-border-subtle font-mono">Object {3}</span>
+</div>
+<!-- Children Container -->
+<div class="pl-6 pt-1 flex flex-col gap-1 border-l border-border-active/50 ml-2.5">
+<div class="flex items-center gap-2 py-0.5">
+<span class="font-mono text-sm text-code-key">theme</span>: <span class="font-mono text-sm text-code-string">"dracula-dark"</span>
+</div>
+<div class="flex items-center gap-2 py-0.5 bg-primary/10 -mx-2 px-2 rounded border border-primary/20 shadow-neon-active">
+<span class="font-mono text-sm text-code-key">autoSave</span>: <span class="font-mono text-sm text-code-bool">true</span>
+<span class="ml-auto text-[10px] text-accent uppercase tracking-wider font-bold">Active</span>
+</div>
+<div class="flex items-center gap-2 py-0.5">
+<span class="font-mono text-sm text-code-key">fontSize</span>: <span class="font-mono text-sm text-code-number">14</span>
+</div>
+</div>
+</div>
+<!-- Node: Features (Array) -->
+<div class="group flex flex-col gap-1 p-1.5 mt-1 rounded hover:bg-bg-surface cursor-pointer border border-transparent hover:border-border-subtle transition-all">
+<div class="flex items-center gap-2 w-full">
+<span class="material-symbols-outlined text-text-muted hover:text-white transition-colors" style="font-size: 18px;">keyboard_arrow_right</span>
+<span class="font-mono text-sm text-code-key font-bold">features</span>
+<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-bg-surface text-text-muted border border-border-subtle font-mono">Array [4]</span>
+</div>
+</div>
+<!-- Node: Users (Array of Objects) -->
+<div class="group flex flex-col gap-1 p-1.5 mt-1 rounded hover:bg-bg-surface cursor-pointer border border-transparent hover:border-border-subtle transition-all">
+<div class="flex items-center gap-2 w-full">
+<span class="material-symbols-outlined text-text-muted hover:text-white transition-colors" style="font-size: 18px;">keyboard_arrow_right</span>
+<span class="font-mono text-sm text-code-key font-bold">users</span>
+<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-bg-surface text-text-muted border border-border-subtle font-mono">Array [2]</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Context Info / Breadcrumbs (Bottom of Tree) -->
+<div class="h-8 border-t border-border-subtle bg-bg-panel flex items-center px-4 text-xs text-text-muted overflow-hidden whitespace-nowrap">
+<span class="hover:text-white cursor-pointer">root</span>
+<span class="material-symbols-outlined text-border-active mx-1" style="font-size: 14px;">chevron_right</span>
+<span class="hover:text-white cursor-pointer">settings</span>
+<span class="material-symbols-outlined text-border-active mx-1" style="font-size: 14px;">chevron_right</span>
+<span class="text-accent font-medium">autoSave</span>
+</div>
+</section>
+</main>
+<!-- Toast Notification (Absolute) -->
+<div class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-bg-surface text-text-main px-4 py-3 rounded-lg shadow-2xl border border-border-active flex items-center gap-3 animate-bounce-in z-50">
+<div class="size-6 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center">
+<span class="material-symbols-outlined" style="font-size: 16px;">check</span>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-semibold">JSON Validated</span>
+<span class="text-xs text-text-muted">No errors found in formatting.</span>
+</div>
+<button class="ml-4 text-text-muted hover:text-white">
+<span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+</button>
+</div>
+</body></html>
