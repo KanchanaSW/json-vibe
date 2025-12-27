@@ -1,175 +1,83 @@
-'use client'
+"use client";
 
-import { useState, useEffect, useRef } from 'react'
-import CodeMirror from '@uiw/react-codemirror'
-import { json } from '@codemirror/lang-json'
-import { EditorView } from '@codemirror/view'
+import { useState } from "react";
+import CodeMirror from "@uiw/react-codemirror";
+import { json } from "@codemirror/lang-json";
+import { EditorView } from "@codemirror/view";
 
-interface JsonEditorProps {
-  value: string
-  onChange: (value: string) => void
-  onValidationChange?: (isValid: boolean) => void
-}
+export default function JsonEditor({
+  value,
+  onChange,
+  onValidationChange,
+}: any) {
+  const [cursor, setCursor] = useState({ line: 1, col: 1 });
 
-export default function JsonEditor({ value, onChange, onValidationChange }: JsonEditorProps) {
-  const [cursorPosition, setCursorPosition] = useState({ line: 1, column: 1 })
-  const [charCount, setCharCount] = useState(0)
-  const [editorHeight, setEditorHeight] = useState(400)
-  const editorContainerRef = useRef<HTMLDivElement>(null)
-  const sectionRef = useRef<HTMLElement>(null)
+  const customTheme = EditorView.theme(
+    {
+      "&": { height: "100%", backgroundColor: "#000000 !important" },
+      ".cm-scroller": {
+        overflow: "auto !important",
+        position: "absolute !important",
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
+        backgroundColor: "#000000 !important",
+      },
+      ".cm-gutters": {
+        backgroundColor: "#000000 !important",
+        border: "none",
+        color: "#52525b",
+        minWidth: "40px",
+      },
+      ".cm-activeLine": { backgroundColor: "#ffffff08" },
+      ".cm-cursor": { borderLeftColor: "#ffffff", borderLeftWidth: "2px" },
+      ".cm-content": { paddingBottom: "100px", caretColor: "white" },
+    },
+    { dark: true }
+  );
 
-  // Calculate editor height
-  useEffect(() => {
-    const updateHeight = () => {
-      if (sectionRef.current) {
-        const sectionHeight = sectionRef.current.clientHeight
-        const footerHeight = 20 // h-6 = 24px
-        const calculatedHeight = sectionHeight - footerHeight
-        if (calculatedHeight > 0) {
-          setEditorHeight(calculatedHeight)
-        }
-      }
+  const updateListener = EditorView.updateListener.of((update) => {
+    if (update.selectionSet) {
+      const line = update.state.doc.lineAt(update.state.selection.main.head);
+      setCursor({
+        line: line.number,
+        col: update.state.selection.main.head - line.from + 1,
+      });
     }
-    
-    requestAnimationFrame(() => {
-      updateHeight()
-      setTimeout(updateHeight, 0)
-      setTimeout(updateHeight, 100)
-    })
-    
-    const resizeObserver = new ResizeObserver(() => {
-      requestAnimationFrame(updateHeight)
-    })
-    if (sectionRef.current) {
-      resizeObserver.observe(sectionRef.current)
-    }
-    window.addEventListener('resize', () => {
-      requestAnimationFrame(updateHeight)
-    })
-    return () => {
-      resizeObserver.disconnect()
-      window.removeEventListener('resize', updateHeight)
-    }
-  }, [])
-
-  useEffect(() => {
-    setCharCount(value.length)
-  }, [value])
-
-  const validateJson = (jsonString: string) => {
-    try {
-      JSON.parse(jsonString)
-      onValidationChange?.(true)
-    } catch {
-      onValidationChange?.(false)
-    }
-  }
-
-  const handleEditorChange = (newValue: string) => {
-    onChange(newValue)
-    validateJson(newValue)
-    setCharCount(newValue.length)
-  }
-
-  // Custom theme matching your design
-  const customTheme = EditorView.theme({
-    '&': {
-      backgroundColor: '#000000',
-      color: '#e4e4e7',
-      height: '100%',
-      width: '100%',
-    },
-    '.cm-scroller': {
-      fontFamily: 'JetBrains Mono, monospace',
-      fontSize: '14px',
-      backgroundColor: '#000000',
-    },
-    '.cm-content': {
-      padding: '16px',
-      minHeight: '100%',
-      backgroundColor: '#000000',
-    },
-    '.cm-gutters': {
-      backgroundColor: '#000000',
-      border: 'none',
-    },
-    '.cm-lineNumbers': {
-      color: '#a1a1aa',
-    },
-    '.cm-lineNumbers .cm-gutterElement': {
-      padding: '0 8px',
-    },
-    '.cm-activeLineGutter': {
-      backgroundColor: 'transparent',
-      color: '#e4e4e7',
-    },
-    '.cm-activeLine': {
-      backgroundColor: '#9213ec10',
-    },
-    '.cm-selectionBackground': {
-      backgroundColor: '#9213ec30',
-    },
-    '.cm-cursor': {
-      borderLeftColor: '#ffffff',
-      borderLeftWidth: '2px',
-    },
-    '.cm-focused .cm-cursor': {
-      borderLeftColor: '#ffffff',
-    },
-  }, { dark: true })
-
-  const extensions = [
-    json(),
-    customTheme,
-    EditorView.lineWrapping,
-    EditorView.updateListener.of((update) => {
-      if (update.selectionSet) {
-        const mainSelection = update.state.selection.main
-        const line = update.state.doc.lineAt(mainSelection.head)
-        setCursorPosition({
-          line: line.number,
-          column: mainSelection.head - line.from + 1,
-        })
-      }
-    }),
-  ]
+  });
 
   return (
-    <section 
-      ref={sectionRef}
-      className="flex-1 min-w-[300px] w-full flex flex-col bg-bg-main relative group/editor"
-      style={{ minHeight: 0, width: '100%', minWidth: 0, height: '100%' }}
-      suppressHydrationWarning
-    >
-      <div 
-        ref={editorContainerRef}
-        className="flex-1 overflow-hidden relative w-full"
-        style={{ width: '100%', minWidth: 0, maxWidth: '100%', height: '100%', backgroundColor: '#000000' }}
-      >
+    <section className="flex-1 flex flex-col min-h-0 h-full w-full bg-black relative overflow-hidden">
+      <div className="flex-1 min-h-0 relative h-full bg-black">
         <CodeMirror
           value={value}
-          height={`${editorHeight}px`}
-          onChange={handleEditorChange}
-          extensions={extensions}
-          basicSetup={{
-            lineNumbers: true,
-            foldGutter: true,
-            dropCursor: false,
-            allowMultipleSelections: false,
+          height="100%"
+          className="h-full absolute inset-0 editor-instance"
+          onChange={(val) => {
+            onChange(val);
+            try {
+              JSON.parse(val);
+              onValidationChange?.(true);
+            } catch {
+              onValidationChange?.(false);
+            }
           }}
+          extensions={[
+            json(),
+            customTheme,
+            updateListener,
+            EditorView.lineWrapping,
+          ]}
+          basicSetup={{ lineNumbers: true, foldGutter: true }}
         />
       </div>
-      
-      <div className="h-8 border-t border-border-subtle bg-bg-main flex items-center justify-between px-4 text-xs font-mono text-text-muted select-none shrink-0">
-        <div className="flex gap-4">
-          <span>Ln {cursorPosition.line}, Col {cursorPosition.column}</span>
-          <span>UTF-8</span>
-          <span>JSON</span>
+      <div className="h-8 border-t border-white/10 bg-black flex items-center justify-between px-4 text-[10px] font-mono text-zinc-500 shrink-0 z-20">
+        <div>
+          LN {cursor.line}, COL {cursor.col}
         </div>
-        <div className="flex gap-4">
-          <span>{charCount} chars</span>
-        </div>
+        <div>{value.length} CHARS</div>
       </div>
     </section>
-  )
+  );
 }
