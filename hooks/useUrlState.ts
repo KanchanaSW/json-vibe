@@ -47,7 +47,7 @@ function loadFromHash(): string {
 }
 
 export function useUrlState() {
-  // Initialize state from hash synchronously if available
+  // Initialize from hash if available (client-side only, avoids hydration issues in 'use client' components)
   const [jsonValue, setJsonValue] = useState<string>(() => {
     if (typeof window !== 'undefined') {
       return loadFromHash()
@@ -63,14 +63,16 @@ export function useUrlState() {
   const [isHydrated, setIsHydrated] = useState(false)
   const isInitialLoadRef = useRef(true)
 
-  // Hydration: Ensure we're synced with URL hash on mount
+  // Mark as hydrated after mount
   useEffect(() => {
     if (typeof window === 'undefined') return
-
+    
+    // Ensure we have the latest hash value (in case it changed)
     const hashValue = loadFromHash()
     setJsonValue(hashValue)
     setInitialJson(hashValue)
     setIsHydrated(true)
+    
     // Mark initial load as complete after a short delay to allow hydration to settle
     setTimeout(() => {
       isInitialLoadRef.current = false

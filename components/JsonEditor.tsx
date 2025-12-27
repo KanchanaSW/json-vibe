@@ -175,6 +175,7 @@ export default function JsonEditor({ value, onChange, onValidationChange }: Json
       onClick={handleContainerClick}
       onMouseDown={handleContainerClick}
       style={{ minHeight: 0 }}
+      suppressHydrationWarning
     >
       <div 
         ref={editorContainerRef}
