@@ -5,10 +5,13 @@ A modern, ultra-minimalist dark mode JSON Editor built with Next.js, React, and 
 ## Features
 
 - 🎨 **Beautiful Dark Theme** - Carefully crafted color palette with neon accents
-- 📝 **Monaco Editor Integration** - Professional code editing experience with syntax highlighting
+- 📝 **CodeMirror Editor** - Professional code editing experience with syntax highlighting
 - 🌳 **Interactive Tree Viewer** - Visualize JSON structure with expand/collapse functionality
 - ✅ **Real-time Validation** - Instant JSON validation feedback
-- 🔗 **Share & Copy Link** - Easy sharing capabilities
+- 🔍 **Diff Viewer** - Compare changes between initial and current JSON
+- 🔧 **Format & Minify** - Format JSON with proper indentation or minify it
+- 🔗 **URL-based State** - JSON state stored in URL hash with automatic compression
+- 📋 **Share & Copy Link** - Easy sharing capabilities via URL
 - 📱 **Fully Responsive** - Works seamlessly on all device sizes
 - ⚡ **Fast & Modern** - Built with Next.js 14 App Router
 
@@ -47,7 +50,9 @@ pnpm dev
 - **Next.js 14** - React framework with App Router
 - **TypeScript** - Type safety
 - **Tailwind CSS** - Utility-first CSS framework
-- **Monaco Editor** - VS Code's editor
+- **CodeMirror** - Professional code editor with JSON language support
+- **React Diff Viewer** - Side-by-side diff visualization
+- **LZ-String** - URL compression for state management
 - **Lucide React** - Beautiful icon library
 
 ## Project Structure
@@ -56,13 +61,16 @@ pnpm dev
 json-vibe/
 ├── app/
 │   ├── layout.tsx       # Root layout
-│   ├── page.tsx         # Main page
-│   └── globals.css      # Global styles
+│   ├── page.tsx       # Main page
+│   └── globals.css    # Global styles
 ├── components/
-│   ├── Header.tsx       # Header with Share/Copy Link buttons
-│   ├── JsonEditor.tsx   # Monaco Editor component
-│   └── JsonTreeViewer.tsx # JSON tree viewer component
-└── ...
+│   ├── Header.tsx              # Header with Share/Copy Link, Format, Minify, Diff buttons
+│   ├── JsonEditor.tsx          # CodeMirror editor component
+│   ├── JsonEditorCodeMirror.tsx # Alternative CodeMirror implementation
+│   ├── JsonTreeViewer.tsx      # JSON tree viewer component
+│   └── DiffViewer.tsx          # Diff viewer component
+└── hooks/
+    └── useUrlState.ts          # URL-based state management hook
 ```
 
 ## Customization
