@@ -1,5 +1,7 @@
 # JSON Vibe
 
+https://jsonshare.netlify.app
+
 A modern, ultra-minimalist dark mode JSON Editor built with Next.js, React, and Tailwind CSS.
 
 ## Features
