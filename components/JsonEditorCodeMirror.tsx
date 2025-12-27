@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import CodeMirror from '@uiw/react-codemirror'
 import { json } from '@codemirror/lang-json'
+import { oneDark } from '@codemirror/theme-one-dark'
 import { EditorView } from '@codemirror/view'
 
 interface JsonEditorProps {
@@ -17,13 +18,14 @@ export default function JsonEditor({ value, onChange, onValidationChange }: Json
   const [editorHeight, setEditorHeight] = useState(400)
   const editorContainerRef = useRef<HTMLDivElement>(null)
   const sectionRef = useRef<HTMLElement>(null)
+  const isInternalUpdateRef = useRef(false)
 
   // Calculate editor height
   useEffect(() => {
     const updateHeight = () => {
       if (sectionRef.current) {
         const sectionHeight = sectionRef.current.clientHeight
-        const footerHeight = 20 // h-6 = 24px
+        const footerHeight = 24 // h-6 = 24px
         const calculatedHeight = sectionHeight - footerHeight
         if (calculatedHeight > 0) {
           setEditorHeight(calculatedHeight)
@@ -66,6 +68,7 @@ export default function JsonEditor({ value, onChange, onValidationChange }: Json
   }
 
   const handleEditorChange = (newValue: string) => {
+    isInternalUpdateRef.current = true
     onChange(newValue)
     validateJson(newValue)
     setCharCount(newValue.length)
@@ -74,23 +77,18 @@ export default function JsonEditor({ value, onChange, onValidationChange }: Json
   // Custom theme matching your design
   const customTheme = EditorView.theme({
     '&': {
-      backgroundColor: '#000000',
+      backgroundColor: '#0f0f11',
       color: '#e4e4e7',
       height: '100%',
       width: '100%',
     },
-    '.cm-scroller': {
+    '.cm-content': {
       fontFamily: 'JetBrains Mono, monospace',
       fontSize: '14px',
-      backgroundColor: '#000000',
-    },
-    '.cm-content': {
       padding: '16px',
-      minHeight: '100%',
-      backgroundColor: '#000000',
     },
     '.cm-gutters': {
-      backgroundColor: '#000000',
+      backgroundColor: '#0f0f11',
       border: 'none',
     },
     '.cm-lineNumbers': {
@@ -110,10 +108,6 @@ export default function JsonEditor({ value, onChange, onValidationChange }: Json
       backgroundColor: '#9213ec30',
     },
     '.cm-cursor': {
-      borderLeftColor: '#ffffff',
-      borderLeftWidth: '2px',
-    },
-    '.cm-focused .cm-cursor': {
       borderLeftColor: '#ffffff',
     },
   }, { dark: true })
@@ -138,13 +132,13 @@ export default function JsonEditor({ value, onChange, onValidationChange }: Json
     <section 
       ref={sectionRef}
       className="flex-1 min-w-[300px] w-full flex flex-col bg-bg-main relative group/editor"
-      style={{ minHeight: 0, width: '100%', minWidth: 0, height: '100%' }}
+      style={{ minHeight: 0, width: '100%', minWidth: 0 }}
       suppressHydrationWarning
     >
       <div 
         ref={editorContainerRef}
         className="flex-1 overflow-hidden relative w-full"
-        style={{ width: '100%', minWidth: 0, maxWidth: '100%', height: '100%', backgroundColor: '#000000' }}
+        style={{ width: '100%', minWidth: 0, maxWidth: '100%' }}
       >
         <CodeMirror
           value={value}
@@ -160,7 +154,7 @@ export default function JsonEditor({ value, onChange, onValidationChange }: Json
         />
       </div>
       
-      <div className="h-8 border-t border-border-subtle bg-bg-main flex items-center justify-between px-4 text-xs font-mono text-text-muted select-none shrink-0">
+      <div className="h-6 border-t border-border-subtle bg-bg-main flex items-center justify-between px-4 text-xs font-mono text-text-muted select-none shrink-0">
         <div className="flex gap-4">
           <span>Ln {cursorPosition.line}, Col {cursorPosition.column}</span>
           <span>UTF-8</span>
@@ -173,3 +167,4 @@ export default function JsonEditor({ value, onChange, onValidationChange }: Json
     </section>
   )
 }
+

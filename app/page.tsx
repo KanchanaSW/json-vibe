@@ -58,7 +58,7 @@ export default function Home() {
       <main className="flex-1 flex overflow-hidden flex-col lg:flex-row">
         {isClient ? (
           <>
-            <div className="flex-1 min-w-[300px] w-full lg:w-auto relative">
+            <div className="flex-1 min-w-[300px] w-full relative" style={{ width: '100%', minWidth: 0 }}>
               <JsonEditor
                 value={jsonValue}
                 onChange={handleJsonChange}
