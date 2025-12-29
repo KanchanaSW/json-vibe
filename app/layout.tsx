@@ -42,9 +42,10 @@ export const metadata: Metadata = {
     title: "JSON Vibe - Modern JSON Editor & Validator",
     description:
       "A modern, ultra-minimalist dark mode JSON Editor. Edit, validate, visualize, and share JSON with a beautiful, professional interface.",
+    // This generates the og:image meta tag for social media sharing
     images: [
       {
-        url: "/screen.png",
+        url: "/screen.png", // Should be placed in /public directory
         width: 1200,
         height: 630,
         alt: "JSON Vibe - Modern JSON Editor",
@@ -57,6 +58,8 @@ export const metadata: Metadata = {
     description:
       "A modern, ultra-minimalist dark mode JSON Editor. Edit, validate, visualize, and share JSON.",
     creator: "@SKW",
+    // This generates the twitter:image meta tag
+    images: ["/screen.png"],
   },
   robots: {
     index: true,
