@@ -1,0 +1,9 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+# Configure secrets scanning to omit NEXT_PUBLIC_GA_MEASUREMENT_ID
+# This is a public variable (intentionally exposed to the client) and should not be treated as a secret
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_GA_MEASUREMENT_ID"
+
