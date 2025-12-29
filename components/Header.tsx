@@ -121,12 +121,12 @@ export default function Header({
         
         <div className="flex items-center gap-3">
           {/* Secondary Actions */}
-          <button 
+          {/* <button 
             className="size-9 flex items-center justify-center rounded-lg text-text-muted hover:text-white hover:bg-bg-surface border border-transparent hover:border-border-subtle transition-all"
             title="Settings"
           >
             <Settings size={20} />
-          </button>
+          </button> */}
           
           {/* Copy Link Button */}
           <button 

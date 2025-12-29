@@ -2,7 +2,7 @@
 
 A modern, ultra-minimalist dark mode JSON Editor built with Next.js, React, and Tailwind CSS. Edit, validate, visualize, and share JSON with a beautiful, professional interface.
 
-🌐 Live Demo: https://jsonshare.netlify.app/
+🌐 Live Demo: https://jsonshare.org/
 
 ## ✨ Features
 
