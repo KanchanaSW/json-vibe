@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Share2, Link2, Settings, CheckCircle2, GitCompare, Check } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { Share2, Link2, Settings, CheckCircle2, GitCompare, Check, QrCode, X, Copy } from 'lucide-react'
+import { QRCodeSVG } from 'qrcode.react'
 
 interface HeaderProps {
   isValid?: boolean
@@ -21,6 +22,10 @@ export default function Header({
   onToggleDiff 
 }: HeaderProps) {
   const [showCopiedPopup, setShowCopiedPopup] = useState(false)
+  const [showQrPopup, setShowQrPopup] = useState(false)
+  const qrButtonRef = useRef<HTMLButtonElement>(null)
+  const qrPopupRef = useRef<HTMLDivElement>(null)
+  const qrCodeRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (showCopiedPopup) {
@@ -30,6 +35,35 @@ export default function Header({
       return () => clearTimeout(timer)
     }
   }, [showCopiedPopup])
+
+  useEffect(() => {
+    if (showQrPopup) {
+      const handleClickOutside = (event: MouseEvent) => {
+        if (
+          qrPopupRef.current &&
+          qrButtonRef.current &&
+          !qrPopupRef.current.contains(event.target as Node) &&
+          !qrButtonRef.current.contains(event.target as Node)
+        ) {
+          setShowQrPopup(false)
+        }
+      }
+
+      const handleEscape = (event: KeyboardEvent) => {
+        if (event.key === 'Escape') {
+          setShowQrPopup(false)
+        }
+      }
+
+      document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener('keydown', handleEscape)
+
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside)
+        document.removeEventListener('keydown', handleEscape)
+      }
+    }
+  }, [showQrPopup])
 
   const showCopyNotification = () => {
     setShowCopiedPopup(true)
@@ -53,6 +87,62 @@ export default function Header({
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href)
     showCopyNotification()
+  }
+
+  const handleQrCodeClick = () => {
+    setShowQrPopup(!showQrPopup)
+  }
+
+  const handleCopyQrCode = async () => {
+    if (!qrCodeRef.current) return
+
+    try {
+      // Find the SVG element within the wrapper div
+      const svg = qrCodeRef.current.querySelector('svg') as SVGSVGElement
+      if (!svg) return
+
+      // Convert SVG to canvas
+      const svgData = new XMLSerializer().serializeToString(svg)
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      const img = new Image()
+
+      canvas.width = 200
+      canvas.height = 200
+
+      await new Promise((resolve, reject) => {
+        img.onload = () => {
+          ctx?.drawImage(img, 0, 0)
+          resolve(null)
+        }
+        img.onerror = reject
+        img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)))
+      })
+
+      // Copy canvas to clipboard
+      canvas.toBlob(async (blob) => {
+        if (blob) {
+          await navigator.clipboard.write([
+            new ClipboardItem({ 'image/png': blob })
+          ])
+          showCopyNotification()
+        }
+      }, 'image/png')
+    } catch (error) {
+      console.error('Failed to copy QR code:', error)
+      // Fallback: try copying as data URL
+      try {
+        const svg = qrCodeRef.current.querySelector('svg') as SVGSVGElement
+        if (svg) {
+          const svgData = new XMLSerializer().serializeToString(svg)
+          const dataUrl = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)))
+          await navigator.clipboard.writeText(dataUrl)
+          showCopyNotification()
+        }
+      } catch (fallbackError) {
+        console.error('Fallback copy also failed:', fallbackError)
+      }
+    }
   }
 
   return (
@@ -121,12 +211,58 @@ export default function Header({
         
         <div className="flex items-center gap-3">
           {/* Secondary Actions */}
-          {/* <button 
-            className="size-9 flex items-center justify-center rounded-lg text-text-muted hover:text-white hover:bg-bg-surface border border-transparent hover:border-border-subtle transition-all"
-            title="Settings"
-          >
-            <Settings size={20} />
-          </button> */}
+          <div className="relative">
+            <button 
+              ref={qrButtonRef}
+              onClick={handleQrCodeClick}
+              className="size-9 flex items-center justify-center rounded-lg text-text-muted hover:text-white hover:bg-bg-surface border border-transparent hover:border-border-subtle transition-all"
+              title="Share via QR Code"
+            >
+              <QrCode size={18} />
+            </button>
+            
+            {/* QR Code Popup */}
+            {showQrPopup && (
+              <div
+                ref={qrPopupRef}
+                className="absolute right-0 top-full mt-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200"
+              >
+                <div className="bg-bg-surface border border-border-subtle rounded-lg shadow-lg p-4 flex flex-col items-center gap-3">
+                  <div className="flex items-center justify-between w-full mb-1">
+                    <span className="text-sm font-medium text-white">Scan QR Code</span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={handleCopyQrCode}
+                        className="text-text-muted hover:text-white transition-colors p-1"
+                        title="Copy QR Code"
+                        aria-label="Copy QR Code"
+                      >
+                        <Copy size={16} />
+                      </button>
+                      <button
+                        onClick={() => setShowQrPopup(false)}
+                        className="text-text-muted hover:text-white transition-colors p-1"
+                        aria-label="Close QR Code"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="bg-white p-3 rounded-lg" ref={qrCodeRef}>
+                    <QRCodeSVG
+                      value={typeof window !== 'undefined' ? window.location.href : ''}
+                      size={200}
+                      level="H"
+                      includeMargin={false}
+                    />
+                  </div>
+                  <p className="text-xs text-text-muted text-center max-w-[200px]">
+                    Scan to open this page on another device
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
           
           {/* Copy Link Button */}
           <button 
@@ -154,7 +290,7 @@ export default function Header({
         <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-2 duration-300">
           <div className="flex items-center gap-2 px-4 py-2.5 bg-bg-surface border border-border-subtle rounded-lg shadow-lg">
             <Check size={18} className="text-green-400" />
-            <span className="text-sm font-medium text-white">Link copied to clipboard!</span>
+            <span className="text-sm font-medium text-white">Copied to clipboard!</span>
           </div>
         </div>
       )}
