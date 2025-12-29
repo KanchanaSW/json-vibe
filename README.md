@@ -44,7 +44,21 @@ yarn install
 pnpm install
 ```
 
-3. Run the development server:
+3. Set up environment variables (optional):
+
+Create a `.env.local` file in the root directory and add your Google Analytics Measurement ID:
+
+```bash
+NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
+```
+
+To get your Measurement ID:
+- Go to [Google Analytics](https://analytics.google.com/)
+- Create a GA4 property (if you don't have one)
+- Navigate to Admin → Data Streams → Web Stream
+- Copy your Measurement ID (format: `G-XXXXXXXXXX`)
+
+4. Run the development server:
 
 ```bash
 npm run dev
@@ -54,7 +68,7 @@ yarn dev
 pnpm dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### Build for Production
 
