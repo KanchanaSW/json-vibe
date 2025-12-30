@@ -26,6 +26,22 @@ export default function Header({
   const qrButtonRef = useRef<HTMLButtonElement>(null)
   const qrPopupRef = useRef<HTMLDivElement>(null)
   const qrCodeRef = useRef<HTMLDivElement>(null)
+  
+  // Check if URL is too long for QR code (max ~4000 chars for alphanumeric at level H)
+  const getQrCodeValue = () => {
+    if (typeof window === 'undefined') return ''
+    const url = window.location.href
+    // QR code max capacity is ~4296 chars for alphanumeric at level H, but we use a safer limit
+    const MAX_QR_LENGTH = 4000
+    return url.length > MAX_QR_LENGTH ? '' : url
+  }
+  
+  const isUrlTooLong = () => {
+    if (typeof window === 'undefined') return false
+    const url = window.location.href
+    const MAX_QR_LENGTH = 4000
+    return url.length > MAX_QR_LENGTH
+  }
 
   useEffect(() => {
     if (showCopiedPopup) {
@@ -94,6 +110,13 @@ export default function Header({
   }
 
   const handleCopyQrCode = async () => {
+    if (isUrlTooLong()) {
+      // If URL is too long, just copy the link instead
+      navigator.clipboard.writeText(window.location.href)
+      showCopyNotification()
+      return
+    }
+    
     if (!qrCodeRef.current) return
 
     try {
@@ -231,14 +254,16 @@ export default function Header({
                   <div className="flex items-center justify-between w-full mb-1">
                     <span className="text-sm font-medium text-white">Scan QR Code</span>
                     <div className="flex items-center gap-2">
-                      <button
-                        onClick={handleCopyQrCode}
-                        className="text-text-muted hover:text-white transition-colors p-1"
-                        title="Copy QR Code"
-                        aria-label="Copy QR Code"
-                      >
-                        <Copy size={16} />
-                      </button>
+                      {!isUrlTooLong() && (
+                        <button
+                          onClick={handleCopyQrCode}
+                          className="text-text-muted hover:text-white transition-colors p-1"
+                          title="Copy QR Code"
+                          aria-label="Copy QR Code"
+                        >
+                          <Copy size={16} />
+                        </button>
+                      )}
                       <button
                         onClick={() => setShowQrPopup(false)}
                         className="text-text-muted hover:text-white transition-colors p-1"
@@ -248,17 +273,33 @@ export default function Header({
                       </button>
                     </div>
                   </div>
-                  <div className="bg-white p-3 rounded-lg" ref={qrCodeRef}>
-                    <QRCodeSVG
-                      value={typeof window !== 'undefined' ? window.location.href : ''}
-                      size={200}
-                      level="H"
-                      includeMargin={false}
-                    />
-                  </div>
-                  <p className="text-xs text-text-muted text-center max-w-[200px]">
-                    Scan to open this page on another device
-                  </p>
+                  {isUrlTooLong() ? (
+                    <div className="bg-white p-6 rounded-lg w-full max-w-[300px]">
+                      <div className="flex flex-col items-center gap-3 w-[200px] text-center">
+                        <div className="text-red-500 text-4xl">⚠️</div>
+                        <p className="text-xs text-gray-700 font-medium">
+                          URL too long for QR code
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Use "Copy Link" button instead to share
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="bg-white p-3 rounded-lg" ref={qrCodeRef}>
+                        <QRCodeSVG
+                          value={getQrCodeValue()}
+                          size={200}
+                          level="H"
+                          includeMargin={false}
+                        />
+                      </div>
+                      <p className="text-xs text-text-muted text-center max-w-[200px]">
+                        Scan to open this page on another device
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
             )}
