@@ -14,7 +14,9 @@ A modern, ultra-minimalist dark mode JSON Editor built with Next.js, React, and 
 - 🔧 **Format & Minify** - One-click JSON formatting with proper indentation or minification
 - 🔗 **URL-based State** - JSON state automatically stored in URL hash with LZ-String compression
 - 📋 **Share & Copy Link** - Easy sharing via URL with native Web Share API support
-- 📱 **Fully Responsive** - Works seamlessly on all device sizes with mobile-optimized UI
+- 🔒 **Secure Sharing** - Password protect your JSON data with AES-GCM encryption before sharing
+- 📱 **QR Code Sharing** - Generate QR codes for instant mobile sharing
+-  **Fully Responsive** - Works seamlessly on all device sizes with mobile-optimized UI
 - ⚡ **Fast & Modern** - Built with Next.js 14 App Router for optimal performance
 - 🎯 **Zero Backend** - Fully client-side application with no server required
 
@@ -89,6 +91,8 @@ npm start
 - **React Diff Viewer** - Side-by-side diff visualization
 - **LZ-String** - URL compression for efficient state management
 - **Lucide React** - Beautiful, consistent icon library
+- **QRCode.react** - QR code generation for easy mobile sharing
+- **Web Crypto API** - Native browser API for secure AES-GCM encryption
 
 ## 📁 Project Structure
 
@@ -127,8 +131,9 @@ The color scheme and styling can be customized in `tailwind.config.ts`. The desi
 3. **Format**: Click "Format" to beautify your JSON with proper indentation
 4. **Minify**: Click "Minify" to compress JSON to a single line
 5. **View Tree**: On desktop, the right panel shows an interactive tree view
-6. **Share**: Click "Share" or "Copy Link" to share your JSON via URL
-7. **Track Changes**: The "Modified" indicator shows when JSON differs from initial state
+6. **Share**: Click the QR icon, "Share", or "Copy Link" to share your JSON via URL
+7. **Secure**: Click "Secure" to encrypt your JSON with a password before sharing
+8. **Track Changes**: The "Modified" indicator shows when JSON differs from initial state
 
 ## 🔗 URL State Management
 
@@ -141,4 +146,3 @@ JSON Vibe stores your JSON data in the URL hash using LZ-String compression. Thi
 ## 📝 License
 
 MIT
-
