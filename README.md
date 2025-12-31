@@ -14,7 +14,8 @@ A modern, ultra-minimalist dark mode JSON Editor built with Next.js, React, and 
 - 🔧 **Format & Minify** - One-click JSON formatting with proper indentation or minification
 - 🔗 **URL-based State** - JSON state automatically stored in URL hash with LZ-String compression
 - 📋 **Share & Copy Link** - Easy sharing via URL with native Web Share API support
-- 🔒 **Secure Sharing** - Password protect your JSON data with AES-GCM encryption before sharing
+- 📦 **Data Model Generation** - Generate TypeScript interfaces, Kotlin data classes, and Java classes from your JSON
+-  **Secure Sharing** - Password protect your JSON data with AES-GCM encryption before sharing
 - 📱 **QR Code Sharing** - Generate QR codes for instant mobile sharing
 -  **Fully Responsive** - Works seamlessly on all device sizes with mobile-optimized UI
 - ⚡ **Fast & Modern** - Built with Next.js 14 App Router for optimal performance
@@ -107,6 +108,7 @@ json-vibe/
 │   ├── JsonEditor.tsx         # Main JSON editor component
 │   ├── JsonEditorCodeMirror.tsx # CodeMirror implementation
 │   ├── JsonTreeViewer.tsx     # Interactive JSON tree visualization
+│   ├── DataModelModal.tsx     # Modal for generating data models
 │   └── DiffViewer.tsx         # Side-by-side diff comparison component
 ├── hooks/
 │   └── useUrlState.ts         # URL-based state management with compression
@@ -132,8 +134,9 @@ The color scheme and styling can be customized in `tailwind.config.ts`. The desi
 4. **Minify**: Click "Minify" to compress JSON to a single line
 5. **View Tree**: On desktop, the right panel shows an interactive tree view
 6. **Share**: Click the QR icon, "Share", or "Copy Link" to share your JSON via URL
-7. **Secure**: Click "Secure" to encrypt your JSON with a password before sharing
-8. **Track Changes**: The "Modified" indicator shows when JSON differs from initial state
+7. **Generate Model**: Click "Generate Data Model" in the tree view to create TypeScript/Kotlin/Java models
+8. **Secure**: Click "Secure" to encrypt your JSON with a password before sharing
+9. **Track Changes**: The "Modified" indicator shows when JSON differs from initial state
 
 ## 🔗 URL State Management
 
