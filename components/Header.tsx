@@ -27,6 +27,15 @@ interface HeaderProps {
 
 const MAX_QR_LENGTH = 2500;
 
+const SimpleTooltip = ({ text, children, className = "" }: { text: string; children: React.ReactNode; className?: string }) => (
+  <div className={`group relative flex items-center ${className}`}>
+    {children}
+    <div className="absolute left-1/2 -translate-x-1/2 top-[calc(100%+8px)] px-2 py-1 bg-zinc-800 text-zinc-200 text-xs rounded border border-zinc-700 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-[70] shadow-xl font-normal">
+      {text}
+    </div>
+  </div>
+);
+
 export default function Header({
   isValid = true,
   onFormat,
@@ -44,7 +53,12 @@ export default function Header({
   const qrCodeRef = useRef<HTMLDivElement>(null);
 
   const currentUrl = typeof window !== "undefined" ? window.location.href : "";
+
+  const getCurrentUrl = () =>
+    typeof window !== "undefined" ? window.location.href : "";
   const isUrlTooLong = currentUrl.length > MAX_QR_LENGTH;
+
+  // Auto-hide toast notification
 
   // Auto-hide toast notification
   useEffect(() => {
@@ -81,7 +95,7 @@ export default function Header({
 
   const handleCopyLink = () => {
     try {
-      navigator.clipboard.writeText(currentUrl);
+      navigator.clipboard.writeText(getCurrentUrl());
       setShowCopiedPopup(true);
     } catch (err) {
       console.error("Clipboard copy failed", err);
@@ -98,10 +112,10 @@ export default function Header({
         await navigator.share({
           title: "JSON Vibe",
           text: "Check out this JSON data",
-          url: currentUrl,
+          url: getCurrentUrl(),
         });
       } catch (err) {
-        // If the user cancelled, do nothing. 
+        // If the user cancelled, do nothing.
         // For any other error (like the Permission Denied error), fallback to copy.
         if ((err as Error).name !== "AbortError") {
           console.warn("Native share failed, falling back to copy link.");
@@ -131,7 +145,9 @@ export default function Header({
           ctx?.drawImage(img, 0, 0, 400, 400);
           resolve(null);
         };
-        img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
+        img.src =
+          "data:image/svg+xml;base64," +
+          btoa(unescape(encodeURIComponent(svgData)));
       });
 
       canvas.toBlob(async (blob) => {
@@ -161,65 +177,92 @@ export default function Header({
 
           {/* Action Group */}
           {!isLocked && (
-          <div className="hidden md:flex items-center h-8 bg-zinc-900 rounded-lg p-1 border border-zinc-800">
-            <button
-              onClick={onFormat}
-              className="px-3 h-full rounded text-xs font-medium text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
-            >
-              Format
-            </button>
-            <div className="w-px h-3 bg-zinc-800 mx-1"></div>
-            <button
-              onClick={onMinify}
-              className="px-3 h-full rounded text-xs font-medium text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
-            >
-              Minify
-            </button>
-            <div className="w-px h-3 bg-zinc-800 mx-1"></div>
-            <div className={`px-3 flex items-center gap-1 text-xs font-medium ${isValid ? "text-green-400" : "text-red-400"}`}>
-              <CheckCircle2 size={14} /> {isValid ? "Valid" : "Invalid"}
-            </div>
-
-            {isModified && (
-              <>
-                <div className="w-px h-3 bg-zinc-800 mx-1"></div>
+            <div className="hidden md:flex items-center h-8 bg-zinc-900 rounded-lg p-1 border border-zinc-800">
+              <SimpleTooltip text="Format JSON" className="h-full">
                 <button
-                  onClick={onToggleDiff}
-                  className={`px-3 h-full rounded text-xs font-medium flex items-center gap-1.5 transition-colors ${
-                    showDiff ? "bg-blue-500/10 text-blue-400" : "text-yellow-500 hover:bg-zinc-800"
-                  }`}
+                  onClick={onFormat}
+                  className="px-3 h-full rounded text-xs font-medium text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
                 >
-                  <GitCompare size={14} /> Diff
+                  Format
                 </button>
-              </>
-            )}
-          </div>
+              </SimpleTooltip>
+              <div className="w-px h-3 bg-zinc-800 mx-1"></div>
+              <SimpleTooltip text="Minify JSON" className="h-full">
+                <button
+                  onClick={onMinify}
+                  className="px-3 h-full rounded text-xs font-medium text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+                >
+                  Minify
+                </button>
+              </SimpleTooltip>
+              <div className="w-px h-3 bg-zinc-800 mx-1"></div>
+              <div
+                className={`px-3 flex items-center gap-1 text-xs font-medium ${
+                  isValid ? "text-green-400" : "text-red-400"
+                }`}
+              >
+                <CheckCircle2 size={14} /> {isValid ? "Valid" : "Invalid"}
+              </div>
+
+              {isModified && (
+                <>
+                  <div className="w-px h-3 bg-zinc-800 mx-1"></div>
+                  <SimpleTooltip text="Toggle Diff View" className="h-full">
+                    <button
+                      onClick={onToggleDiff}
+                      className={`px-3 h-full rounded text-xs font-medium flex items-center gap-1.5 transition-colors ${
+                        showDiff
+                          ? "bg-blue-500/10 text-blue-400"
+                          : "text-yellow-500 hover:bg-zinc-800"
+                      }`}
+                    >
+                      <GitCompare size={14} /> Diff
+                    </button>
+                  </SimpleTooltip>
+                </>
+              )}
+            </div>
           )}
         </div>
 
         <div className="flex items-center gap-3">
           {/* QR Code */}
           <div className="relative">
-            <button
-              ref={qrButtonRef}
-              onClick={() => setShowQrPopup(!showQrPopup)}
-              className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-900 rounded-lg transition-all"
-            >
-              <QrCode size={20} />
-            </button>
+            <SimpleTooltip text="Show QR Code">
+              <button
+                ref={qrButtonRef}
+                onClick={() => setShowQrPopup(!showQrPopup)}
+                className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-900 rounded-lg transition-all"
+              >
+                <QrCode size={20} />
+              </button>
+            </SimpleTooltip>
 
             {showQrPopup && (
-              <div ref={qrPopupRef} className="absolute right-0 top-full mt-2 z-50 animate-in fade-in slide-in-from-top-2">
+              <div
+                ref={qrPopupRef}
+                className="absolute right-0 top-full mt-2 z-50 animate-in fade-in slide-in-from-top-2"
+              >
                 <div className="bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl p-4 w-64">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-semibold text-white">Scan to Share</span>
+                    <span className="text-sm font-semibold text-white">
+                      Scan to Share
+                    </span>
                     <div className="flex gap-1">
                       {!isUrlTooLong && (
-                        <button onClick={handleCopyQrImage} className="p-1 text-zinc-400 hover:text-white">
+                        <button
+                          onClick={handleCopyQrImage}
+                          title="Copy QR Image"
+                          className="p-1 text-zinc-400 hover:text-white"
+                        >
                           <Copy size={16} />
                         </button>
                       )}
-                      <button onClick={() => setShowQrPopup(false)} className="p-1 text-zinc-400 hover:text-white">
+                      <button
+                        onClick={() => setShowQrPopup(false)}
+                        title="Close"
+                        className="p-1 text-zinc-400 hover:text-white"
+                      >
                         <X size={16} />
                       </button>
                     </div>
@@ -227,12 +270,21 @@ export default function Header({
 
                   {isUrlTooLong ? (
                     <div className="bg-zinc-800 p-4 rounded-lg text-center">
-                      <p className="text-xs text-red-400 font-medium">Data too large for QR</p>
-                      <p className="text-[10px] text-zinc-500 mt-1">Use the "Copy Link" button instead.</p>
+                      <p className="text-xs text-red-400 font-medium">
+                        Data too large for QR
+                      </p>
+                      <p className="text-[10px] text-zinc-500 mt-1">
+                        Use the "Copy Link" button instead.
+                      </p>
                     </div>
                   ) : (
                     <div className="bg-white p-2 rounded-lg" ref={qrCodeRef}>
-                      <QRCodeSVG value={currentUrl} size={205} level="L" includeMargin={false} />
+                      <QRCodeSVG
+                        value={currentUrl}
+                        size={205}
+                        level="L"
+                        includeMargin={false}
+                      />
                     </div>
                   )}
                 </div>
@@ -242,41 +294,48 @@ export default function Header({
 
           {/* Share Securely Button */}
           {!isLocked && (
-          <button
-            onClick={onShareSecurely}
-            className="hidden sm:flex items-center gap-2 h-9 px-4 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-sm font-medium rounded-lg border border-zinc-800 transition-all"
-          >
-            <Lock size={16} /> Secure
-          </button>
+            <SimpleTooltip text="Create Secure Link">
+              <button
+                onClick={onShareSecurely}
+                className="hidden sm:flex items-center gap-2 h-9 px-4 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-sm font-medium rounded-lg border border-zinc-800 transition-all"
+              >
+                <Lock size={16} /> Secure
+              </button>
+            </SimpleTooltip>
           )}
 
           {/* Copy Link Button (Desktop only) */}
-          <button
-            onClick={handleCopyLink}
-            className="hidden sm:flex items-center gap-2 h-9 px-4 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-sm font-medium rounded-lg border border-zinc-800 transition-all"
-          >
-            <Link2 size={16} /> Copy Link
-          </button>
+          <SimpleTooltip text="Copy Link">
+            <button
+              onClick={handleCopyLink}
+              className="hidden sm:flex items-center gap-2 h-9 px-4 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-sm font-medium rounded-lg border border-zinc-800 transition-all"
+            >
+              <Link2 size={16} /> Copy Link
+            </button>
+          </SimpleTooltip>
 
           {/* Primary Share Button (Native Share) */}
-          <button
-            onClick={handleNativeShare}
-            className="flex items-center gap-2 h-9 px-4 bg-[#9213ec] hover:bg-[#8110d1] text-white text-sm font-semibold rounded-lg shadow-lg shadow-[#9213ec]/20 transition-all"
-          >
-            <Share2 size={16} /> Share
-          </button>
+          <SimpleTooltip text="Share">
+            <button
+              onClick={handleNativeShare}
+              className="flex items-center gap-2 h-9 px-4 bg-[#9213ec] hover:bg-[#8110d1] text-white text-sm font-semibold rounded-lg shadow-lg shadow-[#9213ec]/20 transition-all"
+            >
+              <Share2 size={16} /> Share
+            </button>
+          </SimpleTooltip>
         </div>
       </header>
 
-     
       {/* Floating Toast Notification */}
       {showCopiedPopup && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-top-4">
           <div className="flex items-center gap-2 px-4 py-2 bg-zinc-900 border border-zinc-700 rounded-full shadow-xl">
             <Check size={16} className="text-green-400" />
-            <span className="text-sm font-medium text-white">Copied to clipboard</span>
+            <span className="text-sm font-medium text-white">
+              Copied to clipboard
+            </span>
           </div>
-        </div>  
+        </div>
       )}
     </>
   );
