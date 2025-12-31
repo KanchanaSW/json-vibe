@@ -11,10 +11,45 @@ export default function Home() {
   const [isValid, setIsValid] = useState(true);
   const [selectedPath, setSelectedPath] = useState<string>("root");
   const [isClient, setIsClient] = useState(false);
+  const [isLocked, setIsLocked] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [sharePassword, setSharePassword] = useState("");
+  const [unlockPassword, setUnlockPassword] = useState("");
 
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  useEffect(() => {
+    if (jsonValue?.startsWith("ENC:")) {
+      setIsLocked(true);
+    } else {
+      setIsLocked(false);
+    }
+  }, [jsonValue]);
+
+  const handleEncrypt = async () => {
+    if (!sharePassword) return;
+    try {
+      const encrypted = await encryptData(jsonValue || "{}", sharePassword);
+      setJsonValue(encrypted);
+      setShowShareModal(false);
+      setSharePassword("");
+    } catch (error) {
+      console.error("Encryption failed", error);
+    }
+  };
+
+  const handleUnlock = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    try {
+      const decrypted = await decryptData(jsonValue || "", unlockPassword);
+      setJsonValue(decrypted);
+      setUnlockPassword("");
+    } catch (error) {
+      alert("Invalid Password");
+    }
+  };
 
   if (!isClient) {
     return (
@@ -25,7 +60,43 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-col h-[100dvh] w-screen overflow-hidden bg-black text-white selection:bg-purple-500/30">
+    <div className="flex flex-col h-[100dvh] w-screen overflow-hidden bg-black text-white selection:bg-purple-500/30 relative">
+      {showShareModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="bg-zinc-900 border border-white/10 p-6 rounded-lg shadow-2xl w-full max-w-sm">
+            <h3 className="text-lg font-semibold mb-4 text-white">
+              Password Protect & Share
+            </h3>
+            <p className="text-zinc-400 text-sm mb-4">
+              Set a password to encrypt your JSON. The URL will be updated with the encrypted data.
+            </p>
+            <input
+              type="password"
+              placeholder="Enter password"
+              className="w-full bg-black border border-white/10 rounded px-3 py-2 text-white mb-4 focus:outline-none focus:border-purple-500"
+              value={sharePassword}
+              onChange={(e) => setSharePassword(e.target.value)}
+              autoFocus
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowShareModal(false)}
+                className="px-3 py-2 text-sm text-zinc-400 hover:text-white"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleEncrypt}
+                disabled={!sharePassword}
+                className="px-3 py-2 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded disabled:opacity-50"
+              >
+                Encrypt & Share
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Header
         isValid={isValid}
         onFormat={() => {
@@ -42,26 +113,76 @@ export default function Home() {
           } catch {}
         }}
         isModified={isModified}
+        onShareSecurely={() => setShowShareModal(true)}
+        isLocked={isLocked}
       />
 
-      <main className="flex-1 flex flex-row min-h-0 overflow-hidden bg-black">
-        {/* Left Side: Editor */}
-        <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-black relative">
-          <JsonEditor
-            value={jsonValue || "{\n  \n}"}
-            onChange={setJsonValue}
-            onValidationChange={setIsValid}
-          />
-        </div>
+      <main className="flex-1 flex flex-row min-h-0 overflow-hidden bg-black relative">
+        {isLocked ? (
+          <div className="absolute inset-0 z-50 bg-black flex flex-col items-center justify-center p-4">
+            <div className="w-full max-w-sm text-center">
+              <div className="mx-auto w-12 h-12 bg-zinc-900 rounded-full flex items-center justify-center mb-4 border border-white/10">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="text-purple-500"
+                >
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold text-white mb-2">
+                Protected Content
+              </h2>
+              <p className="text-zinc-500 mb-6">
+                This JSON is password protected. Enter the password to view it.
+              </p>
+              <form onSubmit={handleUnlock} className="flex gap-2">
+                <input
+                  type="password"
+                  placeholder="Password"
+                  className="flex-1 bg-zinc-900 border border-white/10 rounded px-3 py-2 text-white focus:outline-none focus:border-purple-500"
+                  value={unlockPassword}
+                  onChange={(e) => setUnlockPassword(e.target.value)}
+                  autoFocus
+                />
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded font-medium"
+                >
+                  Unlock
+                </button>
+              </form>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Left Side: Editor */}
+            <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-black relative">
+              <JsonEditor
+                value={jsonValue || "{\n  \n}"}
+                onChange={setJsonValue}
+                onValidationChange={setIsValid}
+              />
+            </div>
 
-        {/* Right Side: Tree Viewer */}
-        <aside className="hidden lg:flex flex-col w-[400px] border-l border-white/10 h-full bg-black shrink-0 overflow-hidden">
-          <JsonTreeViewer
-            json={jsonValue || "{}"}
-            selectedPath={selectedPath}
-            onNodeSelect={setSelectedPath}
-          />
-        </aside>
+            {/* Right Side: Tree Viewer */}
+            <aside className="hidden lg:flex flex-col w-[400px] border-l border-white/10 h-full bg-black shrink-0 overflow-hidden">
+              <JsonTreeViewer
+                json={jsonValue || "{}"}
+                selectedPath={selectedPath}
+                onNodeSelect={setSelectedPath}
+              />
+            </aside>
+          </>
+        )}
       </main>
     </div>
   );
@@ -220,3 +341,80 @@ function forceFormatJSON(input: string): string {
   return out.trim();
 }
 
+async function encryptData(plaintext: string, password: string) {
+  const enc = new TextEncoder();
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const key = await deriveKey(password, salt, ["encrypt"]);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const encrypted = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv: iv as any },
+    key,
+    enc.encode(plaintext)
+  );
+
+  const saltB64 = btoa(String.fromCharCode(...Array.from(salt)));
+  const ivB64 = btoa(String.fromCharCode(...Array.from(iv)));
+  const dataB64 = btoa(
+    String.fromCharCode(...Array.from(new Uint8Array(encrypted)))
+  );
+
+  return `ENC:${saltB64}:${ivB64}:${dataB64}`;
+}
+
+async function decryptData(ciphertext: string, password: string) {
+  if (!ciphertext.startsWith("ENC:")) throw new Error("Not encrypted");
+  const parts = ciphertext.split(":");
+  if (parts.length !== 4) throw new Error("Invalid format");
+
+  const salt = new Uint8Array(
+    atob(parts[1])
+      .split("")
+      .map((c) => c.charCodeAt(0))
+  );
+  const iv = new Uint8Array(
+    atob(parts[2])
+      .split("")
+      .map((c) => c.charCodeAt(0))
+  );
+  const data = new Uint8Array(
+    atob(parts[3])
+      .split("")
+      .map((c) => c.charCodeAt(0))
+  );
+
+  const key = await deriveKey(password, salt, ["decrypt"]);
+  const decrypted = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: iv as any },
+    key,
+    data
+  );
+
+  return new TextDecoder().decode(decrypted);
+}
+
+async function deriveKey(
+  password: string,
+  salt: Uint8Array,
+  usage: KeyUsage[]
+) {
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey(
+    "raw",
+    enc.encode(password),
+    { name: "PBKDF2" },
+    false,
+    ["deriveKey"]
+  );
+  return crypto.subtle.deriveKey(
+    {
+      name: "PBKDF2",
+      salt: salt as any,
+      iterations: 100000,
+      hash: "SHA-256",
+    },
+    keyMaterial,
+    { name: "AES-GCM", length: 256 },
+    false,
+    usage
+  );
+}

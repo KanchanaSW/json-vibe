@@ -10,6 +10,7 @@ import {
   X,
   Copy,
   GitCompare,
+  Lock,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 
@@ -20,6 +21,8 @@ interface HeaderProps {
   isModified?: boolean;
   showDiff?: boolean;
   onToggleDiff?: () => void;
+  onShareSecurely?: () => void;
+  isLocked?: boolean;
 }
 
 const MAX_QR_LENGTH = 2500;
@@ -31,6 +34,8 @@ export default function Header({
   isModified = false,
   showDiff = false,
   onToggleDiff,
+  onShareSecurely,
+  isLocked = false,
 }: HeaderProps) {
   const [showCopiedPopup, setShowCopiedPopup] = useState(false);
   const [showQrPopup, setShowQrPopup] = useState(false);
@@ -144,7 +149,7 @@ export default function Header({
 
   return (
     <>
-      <header className="h-14 border-b border-zinc-800 bg-zinc-950 flex items-center justify-between px-4 z-20 shrink-0">
+      <header className="h-14 border-b border-zinc-800 bg-zinc-950 flex items-center justify-between px-4 z-[60] shrink-0">
         <div className="flex items-center gap-6">
           {/* Logo */}
           <div className="flex items-center gap-2 text-white">
@@ -155,6 +160,7 @@ export default function Header({
           </div>
 
           {/* Action Group */}
+          {!isLocked && (
           <div className="hidden md:flex items-center h-8 bg-zinc-900 rounded-lg p-1 border border-zinc-800">
             <button
               onClick={onFormat}
@@ -188,6 +194,7 @@ export default function Header({
               </>
             )}
           </div>
+          )}
         </div>
 
         <div className="flex items-center gap-3">
@@ -233,6 +240,16 @@ export default function Header({
             )}
           </div>
 
+          {/* Share Securely Button */}
+          {!isLocked && (
+          <button
+            onClick={onShareSecurely}
+            className="hidden sm:flex items-center gap-2 h-9 px-4 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-sm font-medium rounded-lg border border-zinc-800 transition-all"
+          >
+            <Lock size={16} /> Secure
+          </button>
+          )}
+
           {/* Copy Link Button (Desktop only) */}
           <button
             onClick={handleCopyLink}
@@ -251,14 +268,15 @@ export default function Header({
         </div>
       </header>
 
+     
       {/* Floating Toast Notification */}
       {showCopiedPopup && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-4">
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-top-4">
           <div className="flex items-center gap-2 px-4 py-2 bg-zinc-900 border border-zinc-700 rounded-full shadow-xl">
             <Check size={16} className="text-green-400" />
             <span className="text-sm font-medium text-white">Copied to clipboard</span>
           </div>
-        </div>
+        </div>  
       )}
     </>
   );
