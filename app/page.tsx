@@ -29,7 +29,7 @@ export default function Home() {
   }, [jsonValue]);
 
   const handleEncrypt = async () => {
-    if (!sharePassword) return;
+    if (sharePassword.length < 5) return;
     try {
       const encrypted = await encryptData(jsonValue || "{}", sharePassword);
       setJsonValue(encrypted);
@@ -68,7 +68,7 @@ export default function Home() {
               Password Protect & Share
             </h3>
             <p className="text-zinc-400 text-sm mb-4">
-              Set a password to encrypt your JSON. The URL will be updated with the encrypted data.
+              Set a password (min 5 chars) to encrypt your JSON. The URL will be updated with the encrypted data.
             </p>
             <input
               type="password"
@@ -87,7 +87,7 @@ export default function Home() {
               </button>
               <button
                 onClick={handleEncrypt}
-                disabled={!sharePassword}
+                disabled={sharePassword.length < 5}
                 className="px-3 py-2 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded disabled:opacity-50"
               >
                 Encrypt & Share
