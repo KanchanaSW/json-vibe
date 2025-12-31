@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import JsonEditor from "@/components/JsonEditor";
 import JsonTreeViewer from "@/components/JsonTreeViewer";
 import { useUrlState } from "@/hooks/useUrlState";
+import DataModelModal from "@/components/DataModelModal";
 
 export default function Home() {
   const [jsonValue, setJsonValue, initialJson, isModified] = useUrlState();
@@ -13,6 +14,7 @@ export default function Home() {
   const [isClient, setIsClient] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showModelModal, setShowModelModal] = useState(false);
   const [sharePassword, setSharePassword] = useState("");
   const [unlockPassword, setUnlockPassword] = useState("");
 
@@ -117,6 +119,34 @@ export default function Home() {
         isLocked={isLocked}
       />
 
+      {!isLocked && (
+        <div className="flex items-center gap-2 px-4 py-2 bg-zinc-900/50 border-b border-white/5 shrink-0">
+          <button
+            onClick={() => setShowModelModal(true)}
+            className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-zinc-300 bg-zinc-800 hover:bg-zinc-700 hover:text-white rounded border border-white/10 transition-colors"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <path d="M16 13H8"></path>
+              <path d="M16 17H8"></path>
+              <path d="M10 9H8"></path>
+            </svg>
+            Generate Data Model
+          </button>
+        </div>
+      )}
+
       <main className="flex-1 flex flex-row min-h-0 overflow-hidden bg-black relative">
         {isLocked ? (
           <div className="absolute inset-0 z-50 bg-black flex flex-col items-center justify-center p-4">
@@ -184,6 +214,12 @@ export default function Home() {
           </>
         )}
       </main>
+
+      <DataModelModal
+        json={jsonValue || "{}"}
+        isOpen={showModelModal}
+        onClose={() => setShowModelModal(false)}
+      />
     </div>
   );
 }
