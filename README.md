@@ -10,10 +10,11 @@ A modern, ultra-minimalist dark mode JSON Editor built with Next.js, React, and 
 - 📝 **Professional Code Editor** - CodeMirror-powered editor with JSON syntax highlighting and IntelliSense
 - 🌳 **Interactive Tree Viewer** - Visualize JSON structure with expand/collapse functionality (desktop only)
 - ✅ **Real-time Validation** - Instant JSON validation feedback with visual indicators
-- 🔍 **Change Tracking** - Visual indicator when JSON has been modified from initial state
-- 🔧 **Format & Minify** - One-click JSON formatting with proper indentation or minification
-- 🔗 **URL-based State** - JSON state automatically stored in URL hash with LZ-String compression
-- 📋 **Share & Copy Link** - Easy sharing via URL with native Web Share API support
+- 🔍 **Smart Diff Viewer** - Compare original vs modified JSON with Split/Unified views and toggleable formatting
+-  **Format & Minify** - One-click JSON formatting with proper indentation or minification
+- 🔄 **Format Conversion** - Convert JSON to YAML, XML, or CSV with real-time preview and syntax highlighting
+- � **URL-based State** - JSON state automatically stored in URL hash with LZ-String compression
+-  **Share & Copy Link** - Easy sharing via URL with native Web Share API support
 - 📦 **Data Model Generation** - Generate TypeScript interfaces, Kotlin data classes, and Java classes from your JSON
 -  **Secure Sharing** - Password protect your JSON data with AES-GCM encryption before sharing
 - 📱 **QR Code Sharing** - Generate QR codes for instant mobile sharing
@@ -89,7 +90,7 @@ npm start
   - `@uiw/react-codemirror` - React wrapper for CodeMirror
   - `@codemirror/lang-json` - JSON language support
   - `@codemirror/theme-one-dark` - Dark theme
-- **React Diff Viewer** - Side-by-side diff visualization
+- **React Diff Viewer** - Side-by-side and unified diff visualization with syntax highlighting
 - **LZ-String** - URL compression for efficient state management
 - **Lucide React** - Beautiful, consistent icon library
 - **QRCode.react** - QR code generation for easy mobile sharing
@@ -109,6 +110,7 @@ json-vibe/
 │   ├── JsonEditorCodeMirror.tsx # CodeMirror implementation
 │   ├── JsonTreeViewer.tsx     # Interactive JSON tree visualization
 │   ├── DataModelModal.tsx     # Modal for generating data models
+│   ├── FormatConverterModal.tsx # Modal for converting JSON to other formats
 │   └── DiffViewer.tsx         # Side-by-side diff comparison component
 ├── hooks/
 │   └── useUrlState.ts         # URL-based state management with compression
@@ -135,8 +137,9 @@ The color scheme and styling can be customized in `tailwind.config.ts`. The desi
 5. **View Tree**: On desktop, the right panel shows an interactive tree view
 6. **Share**: Click the QR icon, "Share", or "Copy Link" to share your JSON via URL
 7. **Generate Model**: Click "Generate Data Model" in the tree view to create TypeScript/Kotlin/Java models
-8. **Secure**: Click "Secure" to encrypt your JSON with a password before sharing
-9. **Track Changes**: The "Modified" indicator shows when JSON differs from initial state
+8. **Convert Format**: Transform JSON into YAML, XML, or CSV formats with the built-in converter
+9. **Secure**: Click "Secure" to encrypt your JSON with a password before sharing
+10. **Compare Changes**: Click the "Diff" button (visible when modified) to toggle a powerful diff view with split/unified modes
 
 ## 🔗 URL State Management
 
