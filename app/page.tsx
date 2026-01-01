@@ -6,6 +6,8 @@ import JsonEditor from "@/components/JsonEditor";
 import JsonTreeViewer from "@/components/JsonTreeViewer";
 import { useUrlState } from "@/hooks/useUrlState";
 import DataModelModal from "@/components/DataModelModal";
+import FormatConverterModal from "@/components/FormatConverterModal";
+
 
 export default function Home() {
   const [jsonValue, setJsonValue, initialJson, isModified] = useUrlState();
@@ -17,6 +19,7 @@ export default function Home() {
   const [showModelModal, setShowModelModal] = useState(false);
   const [sharePassword, setSharePassword] = useState("");
   const [unlockPassword, setUnlockPassword] = useState("");
+  const [showConverterModal, setShowConverterModal] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -182,6 +185,7 @@ export default function Home() {
                 selectedPath={selectedPath}
                 onNodeSelect={setSelectedPath}
                 onGenerateModel={() => setShowModelModal(true)}
+                onFormatConvert={() => setShowConverterModal(true)}
               />
             </aside>
           </>
@@ -192,6 +196,12 @@ export default function Home() {
         json={jsonValue || "{}"}
         isOpen={showModelModal}
         onClose={() => setShowModelModal(false)}
+      />
+
+       <FormatConverterModal
+        json={jsonValue || "{}"}
+        isOpen={showConverterModal}
+        onClose={() => setShowConverterModal(false)}
       />
     </div>
   );

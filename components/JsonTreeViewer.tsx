@@ -8,6 +8,7 @@ export default function JsonTreeViewer({
   selectedPath,
   onNodeSelect,
   onGenerateModel,
+  onFormatConvert,
 }: any) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set(["root"]));
 
@@ -107,6 +108,31 @@ export default function JsonTreeViewer({
             <path d="M10 9H8"></path>
           </svg>
           Generate Data Model
+        </button>
+      </div>
+      <div className="flex items-center gap-2 px-4 py-2 bg-zinc-900/50 border-b border-white/5 shrink-0">
+        <button
+          onClick={onFormatConvert}
+          className="flex w-full justify-center items-center gap-2 px-3 py-1.5 text-xs font-medium text-zinc-300 bg-zinc-800 hover:bg-zinc-700 hover:text-white rounded border border-white/10 transition-colors mt-2"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          Format Converters
         </button>
       </div>
       <div className="h-10 border-b border-white/10 flex items-center px-3 shrink-0 bg-zinc-950">
