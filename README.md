@@ -11,6 +11,7 @@ A modern, ultra-minimalist dark mode JSON Editor built with Next.js, React, and 
 - 🌳 **Interactive Tree Viewer** - Visualize JSON structure with expand/collapse functionality (desktop only)
 - ✅ **Real-time Validation** - Instant JSON validation feedback with visual indicators
 - 🔍 **Smart Diff Viewer** - Compare original vs modified JSON with Split/Unified views and toggleable formatting
+- 🔎 **JSONPath Filtering** - Filter and query your JSON data in real-time using standard JSONPath syntax
 -  **Format & Minify** - One-click JSON formatting with proper indentation or minification
 - 🔄 **Format Conversion** - Convert JSON to YAML, XML, or CSV with real-time preview and syntax highlighting
 - � **URL-based State** - JSON state automatically stored in URL hash with LZ-String compression
@@ -91,6 +92,7 @@ npm start
   - `@codemirror/lang-json` - JSON language support
   - `@codemirror/theme-one-dark` - Dark theme
 - **React Diff Viewer** - Side-by-side and unified diff visualization with syntax highlighting
+- **JSONPath** - Powerful query language for JSON data filtering
 - **LZ-String** - URL compression for efficient state management
 - **Lucide React** - Beautiful, consistent icon library
 - **QRCode.react** - QR code generation for easy mobile sharing
@@ -134,12 +136,13 @@ The color scheme and styling can be customized in `tailwind.config.ts`. The desi
 2. **Validate**: The editor automatically validates JSON syntax in real-time
 3. **Format**: Click "Format" to beautify your JSON with proper indentation
 4. **Minify**: Click "Minify" to compress JSON to a single line
-5. **View Tree**: On desktop, the right panel shows an interactive tree view
-6. **Share**: Click the QR icon, "Share", or "Copy Link" to share your JSON via URL
-7. **Generate Model**: Click "Generate Data Model" in the tree view to create TypeScript/Kotlin/Java/Rust/Go/Swift models
-8. **Convert Format**: Transform JSON into YAML, XML, or CSV formats with the built-in converter
-9. **Secure**: Click "Secure" to encrypt your JSON with a password before sharing
-10. **Compare Changes**: Click the "Diff" button (visible when modified) to toggle a powerful diff view with split/unified modes
+5. **Filter**: Use the JSONPath bar above the editor to query specific data (e.g., `$.store.book[*]`)
+6. **View Tree**: On desktop, the right panel shows an interactive tree view
+7. **Share**: Click the QR icon, "Share", or "Copy Link" to share your JSON via URL
+8. **Generate Model**: Click "Generate Data Model" in the tree view to create TypeScript/Kotlin/Java/Rust/Go/Swift models
+9. **Convert Format**: Transform JSON into YAML, XML, or CSV formats with the built-in converter
+10. **Secure**: Click "Secure" to encrypt your JSON with a password before sharing
+11. **Compare Changes**: Click the "Diff" button (visible when modified) to toggle a powerful diff view with split/unified modes
 
 ## 🔗 URL State Management
 

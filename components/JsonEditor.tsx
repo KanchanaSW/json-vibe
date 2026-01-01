@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 import { json } from "@codemirror/lang-json";
 import { EditorView } from "@codemirror/view";
+import jp from "jsonpath";
 
 export default function JsonEditor({
   value,
@@ -11,6 +12,7 @@ export default function JsonEditor({
   onValidationChange,
 }: any) {
   const [cursor, setCursor] = useState({ line: 1, col: 1 });
+  const [filter, setFilter] = useState("");
 
   const customTheme = EditorView.theme(
     {
@@ -47,14 +49,56 @@ export default function JsonEditor({
     }
   });
 
+  const { displayValue, isReadOnly, error } = useMemo(() => {
+    if (!filter) return { displayValue: value, isReadOnly: false, error: null };
+    try {
+      const jsonDoc = JSON.parse(value);
+      try {
+        const results = jp.query(jsonDoc, filter);
+        return {
+          displayValue: JSON.stringify(results, null, 2),
+          isReadOnly: true,
+          error: results.length === 0 ? "No matches" : null,
+        };
+      } catch (e) {
+        return {
+          displayValue: value,
+          isReadOnly: true,
+          error: "Invalid JSONPath",
+        };
+      }
+    } catch (e) {
+      return {
+        displayValue: value,
+        isReadOnly: false, // Allow editing to fix invalid JSON
+        error: "Invalid JSON",
+      };
+    }
+  }, [value, filter]);
+
   return (
     <section className="flex-1 flex flex-col min-h-0 h-full w-full bg-black relative overflow-hidden">
+      <div className="h-10 border-b border-white/10 bg-black flex items-center px-4 gap-2 shrink-0">
+        <span className="text-[10px] font-mono text-zinc-500 uppercase">
+          JSONPath
+        </span>
+        <input
+          type="text"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          placeholder="$.store.book[*]"
+          className="flex-1 bg-transparent border border-white/10 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-white/30 font-mono placeholder:text-zinc-700"
+        />
+        {error && <span className="text-[10px] text-red-500">{error}</span>}
+      </div>
       <div className="flex-1 min-h-0 relative h-full bg-black">
         <CodeMirror
-          value={value}
+          value={displayValue}
           height="100%"
           className="h-full absolute inset-0 editor-instance"
+          readOnly={isReadOnly}
           onChange={(val) => {
+            if (isReadOnly) return;
             onChange(val);
             try {
               JSON.parse(val);
@@ -76,7 +120,7 @@ export default function JsonEditor({
         <div>
           LN {cursor.line}, COL {cursor.col}
         </div>
-        <div>{value.length} CHARS</div>
+        <div>{displayValue.length} CHARS</div>
       </div>
     </section>
   );
