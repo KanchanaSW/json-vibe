@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import JsonEditor from "@/components/JsonEditor";
 import JsonTreeViewer from "@/components/JsonTreeViewer";
 import { useUrlState } from "@/hooks/useUrlState";
+import DataModelModal from "@/components/DataModelModal";
 
 export default function Home() {
   const [jsonValue, setJsonValue, initialJson, isModified] = useUrlState();
@@ -13,6 +14,7 @@ export default function Home() {
   const [isClient, setIsClient] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showModelModal, setShowModelModal] = useState(false);
   const [sharePassword, setSharePassword] = useState("");
   const [unlockPassword, setUnlockPassword] = useState("");
 
@@ -179,11 +181,18 @@ export default function Home() {
                 json={jsonValue || "{}"}
                 selectedPath={selectedPath}
                 onNodeSelect={setSelectedPath}
+                onGenerateModel={() => setShowModelModal(true)}
               />
             </aside>
           </>
         )}
       </main>
+
+      <DataModelModal
+        json={jsonValue || "{}"}
+        isOpen={showModelModal}
+        onClose={() => setShowModelModal(false)}
+      />
     </div>
   );
 }
