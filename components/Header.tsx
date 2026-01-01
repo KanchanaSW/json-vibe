@@ -11,6 +11,9 @@ import {
   Copy,
   GitCompare,
   Lock,
+  ArrowDownAZ,
+  ArrowUpAZ,
+  RotateCcw,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 
@@ -18,6 +21,8 @@ interface HeaderProps {
   isValid?: boolean;
   onFormat?: () => void;
   onMinify?: () => void;
+  onSort?: () => void;
+  sortOrder?: "asc" | "desc" | null;
   isModified?: boolean;
   showDiff?: boolean;
   onToggleDiff?: () => void;
@@ -40,6 +45,8 @@ export default function Header({
   isValid = true,
   onFormat,
   onMinify,
+  onSort,
+  sortOrder = null,
   isModified = false,
   showDiff = false,
   onToggleDiff,
@@ -163,6 +170,23 @@ export default function Header({
     }
   };
 
+  const getSortButtonContent = () => {
+    if (sortOrder === "asc") {
+      return {
+        icon: ArrowUpAZ,
+        text: "Sort Z-A",
+        tooltip: "Sort Descending",
+      };
+    }
+    if (sortOrder === "desc") {
+      return { icon: RotateCcw, text: "Reset", tooltip: "Restore Default Order" };
+    }
+    return { icon: ArrowDownAZ, text: "Sort", tooltip: "Sort Keys Alphabetically" };
+  };
+
+  const sortContent = getSortButtonContent();
+  const SortIcon = sortContent.icon;
+
   return (
     <>
       <header className="h-14 border-b border-zinc-800 bg-zinc-950 flex items-center justify-between px-4 z-[60] shrink-0">
@@ -221,6 +245,19 @@ export default function Header({
                   </SimpleTooltip>
                 </>
               )}
+              <div className="w-px h-3 bg-zinc-800 mx-1"></div>
+              <SimpleTooltip text={sortContent.tooltip} className="h-full">
+                <button
+                  onClick={onSort}
+                  className={`px-3 h-full rounded text-xs font-medium transition-colors flex items-center gap-1.5 ${
+                    sortOrder
+                      ? "text-purple-400 bg-purple-500/10 hover:bg-purple-500/20"
+                      : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+                  }`}
+                >
+                  <SortIcon size={14} /> {sortContent.text}
+                </button>
+              </SimpleTooltip>
             </div>
           )}
         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Header from "@/components/Header";
 import JsonEditor from "@/components/JsonEditor";
 import JsonTreeViewer from "@/components/JsonTreeViewer";
@@ -22,6 +22,8 @@ export default function Home() {
   const [unlockPassword, setUnlockPassword] = useState("");
   const [showConverterModal, setShowConverterModal] = useState(false);
   const [showDiff, setShowDiff] = useState(false);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc" | null>(null);
+  const preSortJsonRef = useRef<string | null>(null);
 
   useEffect(() => {
     setIsClient(true);
@@ -62,6 +64,12 @@ export default function Home() {
     } catch (error) {
       alert("Invalid Password");
     }
+  };
+
+  const handleJsonChange = (val: string) => {
+    setSortOrder(null);
+    preSortJsonRef.current = null;
+    setJsonValue(val);
   };
 
   if (!isClient) {
@@ -125,6 +133,34 @@ export default function Home() {
             setJsonValue(JSON.stringify(JSON.parse(jsonValue || "{}")));
           } catch {}
         }}
+        onSort={() => {
+          try {
+            if (sortOrder === null) {
+              // Default -> Ascending
+              preSortJsonRef.current = jsonValue;
+              const parsed = JSON.parse(jsonValue || "{}");
+              const sorted = sortObjectKeys(parsed, "asc");
+              setJsonValue(JSON.stringify(sorted, null, 2));
+              setSortOrder("asc");
+            } else if (sortOrder === "asc") {
+              // Ascending -> Descending
+              const parsed = JSON.parse(jsonValue || "{}");
+              const sorted = sortObjectKeys(parsed, "desc");
+              setJsonValue(JSON.stringify(sorted, null, 2));
+              setSortOrder("desc");
+            } else {
+              // Descending -> Default (Restore)
+              if (preSortJsonRef.current !== null) {
+                setJsonValue(preSortJsonRef.current);
+              }
+              setSortOrder(null);
+              preSortJsonRef.current = null;
+            }
+          } catch (e) {
+            console.error("Sort failed", e);
+          }
+        }}
+        sortOrder={sortOrder}
         isModified={isModified}
         onShareSecurely={() => setShowShareModal(true)}
         isLocked={isLocked}
@@ -191,7 +227,7 @@ export default function Home() {
             <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-black relative">
               <JsonEditor
                 value={jsonValue || "{\n  \n}"}
-                onChange={setJsonValue}
+                onChange={handleJsonChange}
                 onValidationChange={setIsValid}
               />
             </div>
@@ -376,6 +412,22 @@ function forceFormatJSON(input: string): string {
   }
 
   return out.trim();
+}
+
+function sortObjectKeys(obj: any, direction: "asc" | "desc" = "asc"): any {
+  if (Array.isArray(obj)) {
+    return obj.map((item) => sortObjectKeys(item, direction));
+  } else if (obj !== null && typeof obj === "object") {
+    const keys = Object.keys(obj).sort();
+    if (direction === "desc") {
+      keys.reverse();
+    }
+    return keys.reduce((acc: any, key) => {
+        acc[key] = sortObjectKeys(obj[key], direction);
+        return acc;
+      }, {});
+  }
+  return obj;
 }
 
 async function encryptData(plaintext: string, password: string) {
