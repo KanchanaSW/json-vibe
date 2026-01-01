@@ -85,7 +85,7 @@ export default function JsonTreeViewer({
 
   return (
     <div className="flex flex-col h-full bg-black overflow-hidden">
-      <div className="flex items-center gap-2 px-4 py-2 bg-zinc-900/50 border-b border-white/5 shrink-0">
+      <div className="flex items-center gap-1 px-4 py-2 bg-zinc-900/50 border-b border-white/5 shrink-0">
         <button
           onClick={onGenerateModel}
           className="flex w-full justify-center items-center gap-2 px-3 py-1.5 text-xs font-medium text-zinc-300 bg-zinc-800 hover:bg-zinc-700 hover:text-white rounded border border-white/10 transition-colors"
@@ -109,11 +109,10 @@ export default function JsonTreeViewer({
           </svg>
           Generate Data Model
         </button>
-      </div>
-      <div className="flex items-center gap-2 px-4 py-2 bg-zinc-900/50 border-b border-white/5 shrink-0">
+
         <button
           onClick={onFormatConvert}
-          className="flex w-full justify-center items-center gap-2 px-3 py-1.5 text-xs font-medium text-zinc-300 bg-zinc-800 hover:bg-zinc-700 hover:text-white rounded border border-white/10 transition-colors mt-2"
+          className="flex w-full justify-center items-center gap-2 px-3 py-1.5 text-xs font-medium text-zinc-300 bg-zinc-800 hover:bg-zinc-700 hover:text-white rounded border border-white/10 transition-colors"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
