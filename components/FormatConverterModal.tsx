@@ -40,157 +40,157 @@ export default function FormatConverterModal({
     }
   }, [json, isOpen, activeFormat]);
 
-const renderCSVTable = useMemo(() => {
-  if (activeFormat !== "CSV" || !output || output.startsWith("Error"))
-    return null;
+  const renderCSVTable = useMemo(() => {
+    if (activeFormat !== "CSV" || !output || output.startsWith("Error"))
+      return null;
 
-  const lines = output.split(/\r?\n/).filter((line) => line.trim() !== "");
-  if (lines.length < 1) return null;
+    const lines = output.split(/\r?\n/).filter((line) => line.trim() !== "");
+    if (lines.length < 1) return null;
 
-  const rows = lines.map((row) =>
-    row
-      .split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/)
-      .map((cell) => cell.replace(/^"|"$/g, "").replace(/""/g, '"'))
-  );
+    const rows = lines.map((row) =>
+      row
+        .split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/)
+        .map((cell) => cell.replace(/^"|"$/g, "").replace(/""/g, '"'))
+    );
 
-  const headers = rows[0];
-  const dataRows = rows.slice(1);
+    const headers = rows[0];
+    const dataRows = rows.slice(1);
 
-  const renderDataUI = (data: any): JSX.Element => {
-    if (Array.isArray(data)) {
-      if (data.length === 0)
-        return <span className="text-zinc-600 italic">empty array</span>;
-      return (
-        <div className="flex flex-col gap-3 mt-1 min-w-0 w-full overflow-hidden">
-          {data.map((item, idx) => (
-            <div
-              key={idx}
-              className="bg-white/[0.03] border border-white/5 rounded p-2 relative min-w-0"
-            >
-              <span className="absolute -top-2 -left-1 px-1.5 bg-purple-600 text-[8px] font-bold rounded z-10">
-                {idx}
-              </span>
-              <div className="overflow-hidden">
-                {typeof item === "object" ? (
-                  renderDataUI(item)
-                ) : (
-                  <span className="text-zinc-300 break-words whitespace-pre-wrap">
-                    {String(item)}
-                  </span>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      );
-    }
-
-    if (typeof data === "object" && data !== null) {
-      return (
-        <div className="flex flex-col gap-y-3 py-1 w-full min-w-0 overflow-hidden">
-          {Object.entries(data).map(([key, val], idx) => {
-            const isStatus = ["level", "status", "verified"].includes(
-              key.toLowerCase()
-            );
-            return (
+    const renderDataUI = (data: any): JSX.Element => {
+      if (Array.isArray(data)) {
+        if (data.length === 0)
+          return <span className="text-zinc-600 italic">empty array</span>;
+        return (
+          <div className="flex flex-col gap-3 mt-1 min-w-0 w-full overflow-hidden">
+            {data.map((item, idx) => (
               <div
                 key={idx}
-                className="flex flex-col border-l-2 border-purple-500/20 pl-3 min-w-0 overflow-hidden"
+                className="bg-white/[0.03] border border-white/5 rounded p-2 relative min-w-0"
               >
-                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-tighter mb-1">
-                  {key.replace(/_/g, " ")}
+                <span className="absolute -top-2 -left-1 px-1.5 bg-purple-600 text-[8px] font-bold rounded z-10">
+                  {idx}
                 </span>
-                <div className="text-[11px] text-zinc-300 min-w-0">
-                  {isStatus ? (
-                    <span
-                      className={`inline-block px-1.5 py-0.5 rounded-sm text-[9px] font-bold uppercase ${
-                        String(val).match(/INFO|operational|true/i)
-                          ? "bg-emerald-500/20 text-emerald-400"
-                          : String(val).match(/WARN|DEBUG/i)
-                          ? "bg-amber-500/20 text-amber-400"
-                          : "bg-rose-500/20 text-rose-400"
-                      }`}
-                    >
-                      {String(val)}
-                    </span>
+                <div className="overflow-hidden">
+                  {typeof item === "object" ? (
+                    renderDataUI(item)
                   ) : (
-                    <div className="break-words whitespace-pre-wrap leading-relaxed">
-                      {typeof val === "object"
-                        ? renderDataUI(val)
-                        : String(val)}
-                    </div>
+                    <span className="text-zinc-300 break-words whitespace-pre-wrap">
+                      {String(item)}
+                    </span>
                   )}
                 </div>
               </div>
-            );
-          })}
-        </div>
-      );
-    }
-
-    return (
-      <span className="text-zinc-300 break-words whitespace-pre-wrap">
-        {String(data)}
-      </span>
-    );
-  };
-
-  const renderCellContent = (value: string) => {
-    if (!value.trim())
-      return <span className="text-zinc-700 italic opacity-50">empty</span>;
-    try {
-      if (value.startsWith("{") || value.startsWith("[")) {
-        const parsed = JSON.parse(value);
-        return renderDataUI(parsed);
-      }
-    } catch (e) {}
-    return (
-      <span className="break-words whitespace-pre-wrap text-zinc-400 block">
-        {value}
-      </span>
-    );
-  };
-
-  return (
-    <div className="h-full w-full overflow-auto border border-white/10 rounded-lg bg-[#050505] custom-scrollbar">
-      {/* Remove table-fixed to allow min-width to expand the layout */}
-      <table className="min-w-full border-separate border-spacing-0 text-left text-xs">
-        <thead className="sticky top-0 z-20">
-          <tr>
-            <th className="w-12 px-3 py-4 bg-zinc-900 border-b border-r border-white/10 text-zinc-500 font-mono text-center">
-              #
-            </th>
-            {headers.map((header, i) => (
-              <th
-                key={i}
-                className="px-5 py-4 bg-zinc-900 border-b border-r border-white/10 font-bold text-purple-400 uppercase tracking-widest min-w-[300px]"
-              >
-                {header}
-              </th>
             ))}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-white/5">
-          {dataRows.map((row, i) => (
-            <tr key={i} className="group hover:bg-white/[0.01]">
-              <td className="px-3 py-5 border-r border-white/10 bg-zinc-900/10 text-zinc-600 font-mono text-center align-top">
-                {i + 1}
-              </td>
-              {row.map((cell, j) => (
-                <td
-                  key={j}
-                  className="px-5 py-5 border-r border-white/5 last:border-r-0 align-top overflow-hidden max-w-[500px]"
+          </div>
+        );
+      }
+
+      if (typeof data === "object" && data !== null) {
+        return (
+          <div className="flex flex-col gap-y-3 py-1 w-full min-w-0 overflow-hidden">
+            {Object.entries(data).map(([key, val], idx) => {
+              const isStatus = ["level", "status", "verified"].includes(
+                key.toLowerCase()
+              );
+              return (
+                <div
+                  key={idx}
+                  className="flex flex-col border-l-2 border-purple-500/20 pl-3 min-w-0 overflow-hidden"
                 >
-                  <div className="w-full">{renderCellContent(cell)}</div>
-                </td>
+                  <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-tighter mb-1">
+                    {key.replace(/_/g, " ")}
+                  </span>
+                  <div className="text-[11px] text-zinc-300 min-w-0">
+                    {isStatus ? (
+                      <span
+                        className={`inline-block px-1.5 py-0.5 rounded-sm text-[9px] font-bold uppercase ${
+                          String(val).match(/INFO|operational|true/i)
+                            ? "bg-emerald-500/20 text-emerald-400"
+                            : String(val).match(/WARN|DEBUG/i)
+                            ? "bg-amber-500/20 text-amber-400"
+                            : "bg-rose-500/20 text-rose-400"
+                        }`}
+                      >
+                        {String(val)}
+                      </span>
+                    ) : (
+                      <div className="break-words whitespace-pre-wrap leading-relaxed">
+                        {typeof val === "object"
+                          ? renderDataUI(val)
+                          : String(val)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      }
+
+      return (
+        <span className="text-zinc-300 break-words whitespace-pre-wrap">
+          {String(data)}
+        </span>
+      );
+    };
+
+    const renderCellContent = (value: string) => {
+      if (!value.trim())
+        return <span className="text-zinc-700 italic opacity-50">empty</span>;
+      try {
+        if (value.startsWith("{") || value.startsWith("[")) {
+          const parsed = JSON.parse(value);
+          return renderDataUI(parsed);
+        }
+      } catch (e) {}
+      return (
+        <span className="break-words whitespace-pre-wrap text-zinc-400 block">
+          {value}
+        </span>
+      );
+    };
+
+    return (
+      <div className="h-full w-full overflow-auto border border-white/10 rounded-lg bg-[#050505] custom-scrollbar">
+        {/* Remove table-fixed to allow min-width to expand the layout */}
+        <table className="min-w-full border-separate border-spacing-0 text-left text-xs">
+          <thead className="sticky top-0 z-20">
+            <tr>
+              <th className="w-12 px-3 py-4 bg-zinc-900 border-b border-r border-white/10 text-zinc-500 font-mono text-center">
+                #
+              </th>
+              {headers.map((header, i) => (
+                <th
+                  key={i}
+                  className="px-5 py-4 bg-zinc-900 border-b border-r border-white/10 font-bold text-purple-400 uppercase tracking-widest min-w-[300px]"
+                >
+                  {header}
+                </th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}, [output, activeFormat]);
+          </thead>
+          <tbody className="divide-y divide-white/5">
+            {dataRows.map((row, i) => (
+              <tr key={i} className="group hover:bg-white/[0.01]">
+                <td className="px-3 py-5 border-r border-white/10 bg-zinc-900/10 text-zinc-600 font-mono text-center align-top">
+                  {i + 1}
+                </td>
+                {row.map((cell, j) => (
+                  <td
+                    key={j}
+                    className="px-5 py-5 border-r border-white/5 last:border-r-0 align-top overflow-hidden max-w-[500px]"
+                  >
+                    <div className="w-full">{renderCellContent(cell)}</div>
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }, [output, activeFormat]);
 
   if (!isOpen) return null;
 
@@ -267,6 +267,7 @@ const renderCSVTable = useMemo(() => {
             {activeFormat === "CSV" ? (
               renderCSVTable
             ) : (
+              // {/* Replace the XML/YAML rendering block with this */}
               <div className="relative flex">
                 {/* Line Numbers */}
                 <div className="pr-4 text-right select-none border-r border-white/5 mr-4 text-zinc-700 font-mono text-sm leading-6">
@@ -274,25 +275,87 @@ const renderCSVTable = useMemo(() => {
                     <div key={i}>{i + 1}</div>
                   ))}
                 </div>
-                <pre className="text-sm font-mono leading-6 whitespace-pre text-zinc-300">
+
+                <pre className="text-sm font-mono leading-6 whitespace-pre">
                   {output.split("\n").map((line, i) => {
-                    // Very basic highlight logic for visual appeal
-                    const isKey = line.includes(":");
-                    const isTag = line.startsWith("<") || line.endsWith(">");
-                    return (
-                      <div
-                        key={i}
-                        className={
-                          isKey
-                            ? "text-purple-300"
-                            : isTag
-                            ? "text-emerald-400"
-                            : "text-zinc-400"
-                        }
-                      >
-                        {line || " "}
-                      </div>
-                    );
+                    // 1. Existing XML Logic (for reference)
+                    if (activeFormat === "XML") {
+                      const xmlMatch = line.match(
+                        /^(\s*)(<[^>]+>)([^<]*)(<[^>]+>)$/
+                      );
+                      if (xmlMatch) {
+                        const [_, indent, openTag, content, closeTag] =
+                          xmlMatch;
+                        const isSpecial =
+                          /true|false|operational|INFO|verified/i.test(content);
+                        const dataColor = isSpecial
+                          ? "text-emerald-400 font-bold"
+                          : "text-zinc-300";
+                        return (
+                          <div key={i}>
+                            <span className="text-zinc-800">{indent}</span>
+                            <span className="text-purple-400">{openTag}</span>
+                            <span className={dataColor}>{content}</span>
+                            <span className="text-purple-400">{closeTag}</span>
+                          </div>
+                        );
+                      }
+                      const isTag = line.trim().startsWith("<");
+                      return (
+                        <div
+                          key={i}
+                          className={
+                            isTag ? "text-purple-500/80" : "text-zinc-400"
+                          }
+                        >
+                          {line || " "}
+                        </div>
+                      );
+                    }
+
+                    // 2. Updated YAML Logic (Matched to XML Data Colors)
+                    if (activeFormat === "YAML") {
+                      // Split into Key and Value while preserving the indentation in the first part
+                      const parts = line.split(/:(.*)/);
+
+                      if (parts.length > 1) {
+                        const keyPart = parts[0];
+                        const valuePart = parts[1];
+
+                        // Detect special data types to match your CSV/XML "Status Badge" logic
+                        const isSpecial =
+                          /true|false|operational|INFO|WARN|ERROR|verified/i.test(
+                            valuePart
+                          );
+                        const dataColor = isSpecial
+                          ? "text-emerald-400 font-bold"
+                          : "text-zinc-300";
+
+                        return (
+                          <div key={i}>
+                            <span className="text-purple-400">{keyPart}:</span>
+                            <span className={dataColor}>{valuePart}</span>
+                          </div>
+                        );
+                      }
+
+                      // Handle lines without values (like section headers or list markers)
+                      const isListItem = line.trim().startsWith("-");
+                      return (
+                        <div
+                          key={i}
+                          className={
+                            isListItem
+                              ? "text-purple-500/60"
+                              : "text-purple-400"
+                          }
+                        >
+                          {line || " "}
+                        </div>
+                      );
+                    }
+
+                    return <div key={i}>{line}</div>;
                   })}
                 </pre>
               </div>
@@ -346,31 +409,35 @@ function toYAML(data: any): string {
     const sp = "  ".repeat(indent);
     if (obj === null) return "null";
     if (typeof obj !== "object") return JSON.stringify(obj);
+
     if (Array.isArray(obj)) {
       if (obj.length === 0) return "[]";
       return obj
         .map((item) => {
           if (typeof item !== "object" || item === null)
-            return `- ${dump(item, 0)}`;
+            return `${sp}- ${dump(item, 0)}`;
           const itemStr = dump(item, indent + 1);
           const lines = itemStr.split("\n");
-          return `- ${lines[0].trimStart()}\n${lines.slice(1).join("\n")}`;
+          return `${sp}- ${lines[0].trimStart()}\n${lines.slice(1).join("\n")}`;
         })
         .join("\n");
     }
+
     const keys = Object.keys(obj);
     if (keys.length === 0) return "{}";
+
     return keys
       .map((key) => {
         const val = obj[key];
+        // Corrected: Include the 'key' before the colon
         if (
           typeof val === "object" &&
           val !== null &&
           Object.keys(val).length > 0
         ) {
-          return `:\n${dump(val, indent + 1)}`;
+          return `${sp}${key}:\n${dump(val, indent + 1)}`;
         }
-        return `: ${dump(val, 0)}`;
+        return `${sp}${key}: ${dump(val, 0)}`;
       })
       .join("\n");
   };
@@ -378,42 +445,36 @@ function toYAML(data: any): string {
 }
 
 function toXML(data: any): string {
-  const toXmlRec = (obj: any, name: string): string => {
-    // 1. Handle Nulls
-    if (obj === null) {
-      return `<${name}>null</${name}>`;
-    }
+  const indentSize = 2;
 
-    // 2. Handle Arrays: Repeat the parent tag for each item
+  const toXmlRec = (obj: any, name: string, level: number): string => {
+    const spacing = " ".repeat(level * indentSize);
+
+    if (obj === null) return `${spacing}<${name}>null</${name}>\n`;
+
     if (Array.isArray(obj)) {
-      return obj.map((item) => toXmlRec(item, name)).join("");
+      return obj.map((item) => toXmlRec(item, name, level)).join("");
     }
 
-    // 3. Handle Objects: Recursively process keys
     if (typeof obj === "object") {
       let children = "";
       for (const key in obj) {
-        // Sanitize key names to be valid XML tags
         const sanitizedKey = key.replace(/[^a-zA-Z0-9_]/g, "_");
-        children += toXmlRec(obj[key], sanitizedKey);
+        children += toXmlRec(obj[key], sanitizedKey, level + 1);
       }
-      return `<${name}>${children}</${name}>`;
+      return `${spacing}<${name}>\n${children}${spacing}</${name}>\n`;
     }
 
-    // 4. Handle Primitive Values (string, number, boolean)
-    // We escape special characters to prevent broken XML
     const escapedValue = String(obj)
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;");
 
-    return `<${name}>${escapedValue}</${name}>`;
+    return `${spacing}<${name}>${escapedValue}</${name}>\n`;
   };
 
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<root>${toXmlRec(
-    data,
-    "item"
-  )}</root>`;
+  const xmlBody = toXmlRec(data, "item", 1);
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<root>\n${xmlBody}</root>`;
 }
 
 function toCSV(data: any): string {
