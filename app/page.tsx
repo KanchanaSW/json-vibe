@@ -7,6 +7,7 @@ import JsonTreeViewer from "@/components/JsonTreeViewer";
 import { useUrlState } from "@/hooks/useUrlState";
 import DataModelModal from "@/components/DataModelModal";
 import FormatConverterModal from "@/components/FormatConverterModal";
+import DiffViewer from "@/components/DiffViewer";
 
 
 export default function Home() {
@@ -20,6 +21,7 @@ export default function Home() {
   const [sharePassword, setSharePassword] = useState("");
   const [unlockPassword, setUnlockPassword] = useState("");
   const [showConverterModal, setShowConverterModal] = useState(false);
+  const [showDiff, setShowDiff] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -32,6 +34,12 @@ export default function Home() {
       setIsLocked(false);
     }
   }, [jsonValue]);
+
+  useEffect(() => {
+    if (!isModified && showDiff) {
+      setShowDiff(false);
+    }
+  }, [isModified, showDiff]);
 
   const handleEncrypt = async () => {
     if (sharePassword.length < 5) return;
@@ -120,6 +128,8 @@ export default function Home() {
         isModified={isModified}
         onShareSecurely={() => setShowShareModal(true)}
         isLocked={isLocked}
+        showDiff={showDiff}
+        onToggleDiff={() => setShowDiff(!showDiff)}
       />
 
       <main className="flex-1 flex flex-row min-h-0 overflow-hidden bg-black relative">
@@ -166,6 +176,14 @@ export default function Home() {
                 </button>
               </form>
             </div>
+          </div>
+        ) : showDiff ? (
+          <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-black p-4">
+            <DiffViewer
+              oldValue={initialJson || "{}"}
+              newValue={jsonValue || "{}"}
+              onClose={() => setShowDiff(false)}
+            />
           </div>
         ) : (
           <>
