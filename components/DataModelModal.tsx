@@ -8,7 +8,7 @@ interface DataModelModalProps {
   onClose: () => void;
 }
 
-type Language = "TypeScript" | "Kotlin" | "Java";
+type Language = "TypeScript" | "Kotlin" | "Java" | "Rust" | "Go" | "Swift";
 
 export default function DataModelModal({
   json,
@@ -33,6 +33,15 @@ export default function DataModelModal({
             break;
           case "Java":
             generated = generateJavaClasses(parsed);
+            break;
+          case "Rust":
+            generated = generateRustStructs(parsed);
+            break;
+          case "Go":
+            generated = generateGoStructs(parsed);
+            break;
+          case "Swift":
+            generated = generateSwiftStructs(parsed);
             break;
         }
         setModel(generated);
@@ -94,7 +103,7 @@ export default function DataModelModal({
               Data Model
             </h3>
             <div className="flex bg-zinc-800 rounded p-1 border border-white/10">
-              {(["TypeScript", "Kotlin", "Java"] as Language[]).map((lang) => (
+              {(["TypeScript", "Kotlin", "Java", "Rust", "Go", "Swift"] as Language[]).map((lang) => (
                 <button
                   key={lang}
                   onClick={() => setLanguage(lang)}
@@ -261,6 +270,169 @@ function generateKotlinDataClasses(data: any, rootName = "Root"): string {
 
   walk(data, rootName);
   return Array.from(classes.values()).reverse().join("\n\n");
+}
+
+function generateRustStructs(data: any, rootName = "Root"): string {
+  const structs = new Map<string, string>();
+
+  function getType(value: any): string {
+    if (value === null) return "Option<serde_json::Value>";
+    switch (typeof value) {
+      case "string": return "String";
+      case "number": return Number.isInteger(value) ? "i64" : "f64";
+      case "boolean": return "bool";
+      case "undefined": return "Option<serde_json::Value>";
+      case "object":
+        if (Array.isArray(value)) {
+          if (value.length === 0) return "Vec<serde_json::Value>";
+          return `Vec<${getType(value[0])}>`;
+        }
+        return "serde_json::Value";
+    }
+    return "serde_json::Value";
+  }
+
+  function walk(obj: any, name: string) {
+    if (obj === null || typeof obj !== "object" || Array.isArray(obj)) return;
+    const lines = [
+      `#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]`,
+      `#[serde(rename_all = "camelCase")]`,
+      `pub struct ${name} {`
+    ];
+    for (const [key, value] of Object.entries(obj)) {
+      let type = getType(value);
+      if (Array.isArray(value) && value.length > 0 && typeof value[0] === "object" && value[0] !== null) {
+        const subName = key.charAt(0).toUpperCase() + key.slice(1) + "Item";
+        walk(value[0], subName);
+        type = `Vec<${subName}>`;
+      } else if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+        const subName = key.charAt(0).toUpperCase() + key.slice(1);
+        walk(value, subName);
+        type = subName;
+      }
+      lines.push(`    pub ${key}: ${type},`);
+    }
+    lines.push("}");
+    if (!structs.has(name)) structs.set(name, lines.join("\n"));
+  }
+
+  if (Array.isArray(data)) {
+    if (data.length > 0 && typeof data[0] === "object") {
+      walk(data[0], rootName + "Item");
+      return `use serde::{Deserialize, Serialize};\nuse serde_json::Value;\n\n` + 
+             `pub type ${rootName} = Vec<${rootName}Item>;\n\n` + 
+             Array.from(structs.values()).reverse().join("\n\n");
+    }
+    return `// Array of primitives or empty`;
+  }
+
+  walk(data, rootName);
+  return `use serde::{Deserialize, Serialize};\nuse serde_json::Value;\n\n` + Array.from(structs.values()).reverse().join("\n\n");
+}
+
+function generateGoStructs(data: any, rootName = "Root"): string {
+  const structs = new Map<string, string>();
+
+  function getType(value: any): string {
+    if (value === null) return "interface{}";
+    switch (typeof value) {
+      case "string": return "string";
+      case "number": return Number.isInteger(value) ? "int" : "float64";
+      case "boolean": return "bool";
+      case "undefined": return "interface{}";
+      case "object":
+        if (Array.isArray(value)) {
+          if (value.length === 0) return "[]interface{}";
+          return `[]${getType(value[0])}`;
+        }
+        return "interface{}";
+    }
+    return "interface{}";
+  }
+
+  function walk(obj: any, name: string) {
+    if (obj === null || typeof obj !== "object" || Array.isArray(obj)) return;
+    const lines = [`type ${name} struct {`];
+    for (const [key, value] of Object.entries(obj)) {
+      let type = getType(value);
+      if (Array.isArray(value) && value.length > 0 && typeof value[0] === "object" && value[0] !== null) {
+        const subName = key.charAt(0).toUpperCase() + key.slice(1) + "Item";
+        walk(value[0], subName);
+        type = `[]${subName}`;
+      } else if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+        const subName = key.charAt(0).toUpperCase() + key.slice(1);
+        walk(value, subName);
+        type = subName;
+      }
+      const fieldName = key.charAt(0).toUpperCase() + key.slice(1);
+      lines.push(`\t${fieldName} ${type} \`json:"${key}"\``);
+    }
+    lines.push("}");
+    if (!structs.has(name)) structs.set(name, lines.join("\n"));
+  }
+
+  if (Array.isArray(data)) {
+    if (data.length > 0 && typeof data[0] === "object") {
+      walk(data[0], rootName + "Item");
+      return `package main\n\ntype ${rootName} []${rootName}Item\n\n` + Array.from(structs.values()).reverse().join("\n\n");
+    }
+    return `// Array of primitives or empty`;
+  }
+
+  walk(data, rootName);
+  return `package main\n\n` + Array.from(structs.values()).reverse().join("\n\n");
+}
+
+function generateSwiftStructs(data: any, rootName = "Root"): string {
+  const structs = new Map<string, string>();
+
+  function getType(value: any): string {
+    if (value === null) return "Any?";
+    switch (typeof value) {
+      case "string": return "String";
+      case "number": return Number.isInteger(value) ? "Int" : "Double";
+      case "boolean": return "Bool";
+      case "undefined": return "Any?";
+      case "object":
+        if (Array.isArray(value)) {
+          if (value.length === 0) return "[Any]";
+          return `[${getType(value[0])}]`;
+        }
+        return "Any";
+    }
+    return "Any";
+  }
+
+  function walk(obj: any, name: string) {
+    if (obj === null || typeof obj !== "object" || Array.isArray(obj)) return;
+    const lines = [`struct ${name}: Codable {`];
+    for (const [key, value] of Object.entries(obj)) {
+      let type = getType(value);
+      if (Array.isArray(value) && value.length > 0 && typeof value[0] === "object" && value[0] !== null) {
+        const subName = key.charAt(0).toUpperCase() + key.slice(1) + "Item";
+        walk(value[0], subName);
+        type = `[${subName}]`;
+      } else if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+        const subName = key.charAt(0).toUpperCase() + key.slice(1);
+        walk(value, subName);
+        type = subName;
+      }
+      lines.push(`    let ${key}: ${type}`);
+    }
+    lines.push("}");
+    if (!structs.has(name)) structs.set(name, lines.join("\n"));
+  }
+
+  if (Array.isArray(data)) {
+    if (data.length > 0 && typeof data[0] === "object") {
+      walk(data[0], rootName + "Item");
+      return `import Foundation\n\ntypealias ${rootName} = [${rootName}Item]\n\n` + Array.from(structs.values()).reverse().join("\n\n");
+    }
+    return `// Array of primitives or empty`;
+  }
+
+  walk(data, rootName);
+  return `import Foundation\n\n` + Array.from(structs.values()).reverse().join("\n\n");
 }
 
 function generateJavaClasses(data: any, rootName = "Root"): string {

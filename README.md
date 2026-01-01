@@ -15,7 +15,7 @@ A modern, ultra-minimalist dark mode JSON Editor built with Next.js, React, and 
 - 🔄 **Format Conversion** - Convert JSON to YAML, XML, or CSV with real-time preview and syntax highlighting
 - � **URL-based State** - JSON state automatically stored in URL hash with LZ-String compression
 -  **Share & Copy Link** - Easy sharing via URL with native Web Share API support
-- 📦 **Data Model Generation** - Generate TypeScript interfaces, Kotlin data classes, and Java classes from your JSON
+- 📦 **Data Model Generation** - Generate TypeScript, Kotlin, Java, Rust, Go, and Swift models from your JSON
 -  **Secure Sharing** - Password protect your JSON data with AES-GCM encryption before sharing
 - 📱 **QR Code Sharing** - Generate QR codes for instant mobile sharing
 -  **Fully Responsive** - Works seamlessly on all device sizes with mobile-optimized UI
@@ -136,7 +136,7 @@ The color scheme and styling can be customized in `tailwind.config.ts`. The desi
 4. **Minify**: Click "Minify" to compress JSON to a single line
 5. **View Tree**: On desktop, the right panel shows an interactive tree view
 6. **Share**: Click the QR icon, "Share", or "Copy Link" to share your JSON via URL
-7. **Generate Model**: Click "Generate Data Model" in the tree view to create TypeScript/Kotlin/Java models
+7. **Generate Model**: Click "Generate Data Model" in the tree view to create TypeScript/Kotlin/Java/Rust/Go/Swift models
 8. **Convert Format**: Transform JSON into YAML, XML, or CSV formats with the built-in converter
 9. **Secure**: Click "Secure" to encrypt your JSON with a password before sharing
 10. **Compare Changes**: Click the "Diff" button (visible when modified) to toggle a powerful diff view with split/unified modes
