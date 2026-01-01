@@ -197,9 +197,25 @@ export default function FormatConverterModal({
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 font-sans">
       {showCopiedPopup && (
-        <div className="fixed top-10 left-1/2 -translate-x-1/2 z-[110] animate-in fade-in slide-in-from-top-4">
-          <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-full shadow-lg">
-            <span className="text-sm font-bold">Copied!</span>
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[110] animate-in fade-in slide-in-from-top-4">
+          <div className="flex items-center gap-2 px-4 py-2 bg-zinc-900 border border-zinc-700 rounded-full shadow-xl">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-green-400"
+            >
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span className="text-sm font-medium text-white">
+              Copied to clipboard
+            </span>
           </div>
         </div>
       )}

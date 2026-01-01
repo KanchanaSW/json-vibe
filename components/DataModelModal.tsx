@@ -130,7 +130,7 @@ export default function DataModelModal({
           </button>
         </div>
         <div className="flex-1 overflow-auto p-6 bg-[#0d0d0d]">
-          <pre className="text-sm text-emerald-400 font-mono whitespace-pre-wrap selection:bg-emerald-500/30">
+          <pre className="text-sm text-purple-400 font-mono whitespace-pre-wrap selection:bg-emerald-500/30">
             {model}
           </pre>
         </div>
