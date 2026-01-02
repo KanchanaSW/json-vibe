@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 import { json } from "@codemirror/lang-json";
 import { EditorView } from "@codemirror/view";
-import jp from "jsonpath";
+import { JSONPath } from "jsonpath-plus";
 
 export default function JsonEditor({
   value,
@@ -54,7 +54,7 @@ export default function JsonEditor({
     try {
       const jsonDoc = JSON.parse(value);
       try {
-        const results = jp.query(jsonDoc, filter);
+        const results = JSONPath({ path: filter, json: jsonDoc });
         return {
           displayValue: JSON.stringify(results, null, 2),
           isReadOnly: true,
