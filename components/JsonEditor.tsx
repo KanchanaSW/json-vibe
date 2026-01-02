@@ -76,6 +76,14 @@ export default function JsonEditor({
     }
   }, [value, filter]);
 
+  const stats = useMemo(() => {
+    const encoder = new TextEncoder();
+    const rawBytes = encoder.encode(displayValue).length;
+    const rawKb = (rawBytes / 1024).toFixed(2);
+
+    return { rawKb };
+  }, [displayValue]);
+
   return (
     <section className="flex-1 flex flex-col min-h-0 h-full w-full bg-black relative overflow-hidden">
       <div className="h-10 border-b border-white/10 bg-black flex items-center px-4 gap-2 shrink-0">
@@ -120,7 +128,12 @@ export default function JsonEditor({
         <div>
           LN {cursor.line}, COL {cursor.col}
         </div>
-        <div>{displayValue.length} CHARS</div>
+        <div className="flex gap-4">
+          <span>
+            {stats.rawKb} KB
+          </span>
+          <span>{displayValue.length} CHARS</span>
+        </div>
       </div>
     </section>
   );
