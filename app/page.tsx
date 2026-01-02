@@ -8,6 +8,7 @@ import { useUrlState } from "@/hooks/useUrlState";
 import DataModelModal from "@/components/DataModelModal";
 import FormatConverterModal from "@/components/FormatConverterModal";
 import DiffViewer from "@/components/DiffViewer";
+import JsonVisualizerModal from "@/components/JsonVisualizerModal";
 
 
 export default function Home() {
@@ -21,6 +22,7 @@ export default function Home() {
   const [sharePassword, setSharePassword] = useState("");
   const [unlockPassword, setUnlockPassword] = useState("");
   const [showConverterModal, setShowConverterModal] = useState(false);
+  const [showVisualizerModal, setShowVisualizerModal] = useState(false);
   const [showDiff, setShowDiff] = useState(false);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc" | null>(null);
   const preSortJsonRef = useRef<string | null>(null);
@@ -240,6 +242,7 @@ export default function Home() {
                 onNodeSelect={setSelectedPath}
                 onGenerateModel={() => setShowModelModal(true)}
                 onFormatConvert={() => setShowConverterModal(true)}
+                onVisualize={() => setShowVisualizerModal(true)}
               />
             </aside>
           </>
@@ -256,6 +259,12 @@ export default function Home() {
         json={jsonValue || "{}"}
         isOpen={showConverterModal}
         onClose={() => setShowConverterModal(false)}
+      />
+
+      <JsonVisualizerModal
+        json={jsonValue || "{}"}
+        isOpen={showVisualizerModal}
+        onClose={() => setShowVisualizerModal(false)}
       />
     </div>
   );
