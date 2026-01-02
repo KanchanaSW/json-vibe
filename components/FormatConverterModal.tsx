@@ -6,7 +6,8 @@ interface FormatConverterModalProps {
   onClose: () => void;
 }
 
-type Format = "YAML" | "XML" | "CSV";
+// 1. Added "TOON" to the Format type
+type Format = "YAML" | "XML" | "CSV" | "TOON";
 
 export default function FormatConverterModal({
   json,
@@ -32,6 +33,9 @@ export default function FormatConverterModal({
           case "CSV":
             result = toCSV(data);
             break;
+          case "TOON": // 2. Added case for TOON
+            result = toTOON(data);
+            break;
         }
         setOutput(result);
       } catch (err) {
@@ -40,6 +44,7 @@ export default function FormatConverterModal({
     }
   }, [json, isOpen, activeFormat]);
 
+  // ... (renderCSVTable logic remains the same)
   const renderCSVTable = useMemo(() => {
     if (activeFormat !== "CSV" || !output || output.startsWith("Error"))
       return null;
@@ -153,7 +158,6 @@ export default function FormatConverterModal({
 
     return (
       <div className="h-full w-full overflow-auto border border-white/10 rounded-lg bg-[#050505] custom-scrollbar">
-        {/* Remove table-fixed to allow min-width to expand the layout */}
         <table className="min-w-full border-separate border-spacing-0 text-left text-xs">
           <thead className="sticky top-0 z-20">
             <tr>
@@ -243,7 +247,7 @@ export default function FormatConverterModal({
               Converter
             </h3>
             <div className="flex bg-black/40 rounded-lg p-1 border border-white/5">
-              {(["YAML", "XML", "CSV"] as Format[]).map((format) => (
+              {(["YAML", "XML", "CSV", "TOON"] as Format[]).map((format) => (
                 <button
                   key={format}
                   onClick={() => setActiveFormat(format)}
@@ -283,9 +287,7 @@ export default function FormatConverterModal({
             {activeFormat === "CSV" ? (
               renderCSVTable
             ) : (
-              // {/* Replace the XML/YAML rendering block with this */}
               <div className="relative flex">
-                {/* Line Numbers */}
                 <div className="pr-4 text-right select-none border-r border-white/5 mr-4 text-zinc-700 font-mono text-sm leading-6">
                   {output.split("\n").map((_, i) => (
                     <div key={i}>{i + 1}</div>
@@ -294,7 +296,7 @@ export default function FormatConverterModal({
 
                 <pre className="text-sm font-mono leading-6 whitespace-pre">
                   {output.split("\n").map((line, i) => {
-                    // 1. Existing XML Logic (for reference)
+                    // 1. XML Logic
                     if (activeFormat === "XML") {
                       const xmlMatch = line.match(
                         /^(\s*)(<[^>]+>)([^<]*)(<[^>]+>)$/
@@ -329,16 +331,12 @@ export default function FormatConverterModal({
                       );
                     }
 
-                    // 2. Updated YAML Logic (Matched to XML Data Colors)
+                    // 2. YAML Logic
                     if (activeFormat === "YAML") {
-                      // Split into Key and Value while preserving the indentation in the first part
                       const parts = line.split(/:(.*)/);
-
                       if (parts.length > 1) {
                         const keyPart = parts[0];
                         const valuePart = parts[1];
-
-                        // Detect special data types to match your CSV/XML "Status Badge" logic
                         const isSpecial =
                           /true|false|operational|INFO|WARN|ERROR|verified/i.test(
                             valuePart
@@ -354,8 +352,6 @@ export default function FormatConverterModal({
                           </div>
                         );
                       }
-
-                      // Handle lines without values (like section headers or list markers)
                       const isListItem = line.trim().startsWith("-");
                       return (
                         <div
@@ -369,6 +365,40 @@ export default function FormatConverterModal({
                           {line || " "}
                         </div>
                       );
+                    }
+
+                    // 3. Added TOON (TOML) Logic
+                    if (activeFormat === "TOON") {
+                      // Handle Sections like [header] or [[array]]
+                      if (line.trim().startsWith("[")) {
+                        return (
+                          <div key={i} className="text-purple-400 font-bold">
+                            {line}
+                          </div>
+                        );
+                      }
+                      // Handle key = value
+                      const parts = line.split(/=(.*)/);
+                      if (parts.length > 1) {
+                        const keyPart = parts[0];
+                        const valuePart = parts[1];
+                        const isSpecial =
+                          /true|false|operational|INFO|WARN|ERROR|verified/i.test(
+                            valuePart
+                          );
+                        const dataColor = isSpecial
+                          ? "text-emerald-400 font-bold"
+                          : "text-zinc-300";
+
+                        return (
+                          <div key={i}>
+                            <span className="text-purple-500/80">
+                              {keyPart}=
+                            </span>
+                            <span className={dataColor}>{valuePart}</span>
+                          </div>
+                        );
+                      }
                     }
 
                     return <div key={i}>{line}</div>;
@@ -418,6 +448,66 @@ export default function FormatConverterModal({
       </div>
     </div>
   );
+}
+
+// ... (Existing toYAML, toXML, toCSV functions)
+
+// 4. Added toTOON (TOML-style) conversion function
+function toTOON(data: any): string {
+  const formatValue = (val: any): string => {
+    if (typeof val === "string") return `"${val.replace(/"/g, '\\"')}"`;
+    if (typeof val === "boolean" || typeof val === "number") return String(val);
+    if (val === null) return '""';
+    if (Array.isArray(val)) return `[ ${val.map(formatValue).join(", ")} ]`;
+    return '""';
+  };
+
+  const dump = (obj: any, prefix = ""): string => {
+    let result = "";
+    const complexKeys: string[] = [];
+    const simpleKeys: string[] = [];
+
+    if (typeof obj !== "object" || obj === null) return String(obj);
+
+    // Separate simple values from nested objects/arrays of objects
+    Object.keys(obj).forEach((key) => {
+      const val = obj[key];
+      if (
+        typeof val === "object" &&
+        val !== null &&
+        (!Array.isArray(val) || (val.length > 0 && typeof val[0] === "object"))
+      ) {
+        complexKeys.push(key);
+      } else {
+        simpleKeys.push(key);
+      }
+    });
+
+    // 1. Process Simple Keys first (TOML requirement)
+    simpleKeys.forEach((key) => {
+      result += `${key} = ${formatValue(obj[key])}\n`;
+    });
+
+    // 2. Process Complex Keys
+    complexKeys.forEach((key) => {
+      const val = obj[key];
+      const fullKey = prefix ? `${prefix}.${key}` : key;
+
+      if (Array.isArray(val)) {
+        // Array of tables [[table]]
+        val.forEach((item) => {
+          result += `\n[[${fullKey}]]\n${dump(item, fullKey)}`;
+        });
+      } else {
+        // Single table [table]
+        result += `\n[${fullKey}]\n${dump(val, fullKey)}`;
+      }
+    });
+
+    return result;
+  };
+
+  return dump(data).trim();
 }
 
 function toYAML(data: any): string {
