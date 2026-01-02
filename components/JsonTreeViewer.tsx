@@ -10,6 +10,7 @@ export default function JsonTreeViewer({
   onGenerateModel,
   onFormatConvert,
   onVisualize,
+  onImportCurl,
 }: any) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set(["root"]));
 
@@ -158,6 +159,27 @@ export default function JsonTreeViewer({
             <path d="M12 12V8"></path>
           </svg>
           Visualize
+        </button>
+        <button
+          onClick={onImportCurl}
+          className="flex w-full justify-center items-center gap-2 px-3 py-1.5 text-xs font-medium text-zinc-300 bg-zinc-800 hover:bg-zinc-700 hover:text-white rounded border border-white/10 transition-colors"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          Import cURL
         </button>
       </div>
       <div className="h-10 border-b border-white/10 flex items-center px-3 shrink-0 bg-zinc-950">

@@ -9,6 +9,7 @@ import DataModelModal from "@/components/DataModelModal";
 import FormatConverterModal from "@/components/FormatConverterModal";
 import DiffViewer from "@/components/DiffViewer";
 import JsonVisualizerModal from "@/components/JsonVisualizerModal";
+import CurlImportModal from "@/components/CurlImportModal";
 
 
 export default function Home() {
@@ -23,6 +24,7 @@ export default function Home() {
   const [unlockPassword, setUnlockPassword] = useState("");
   const [showConverterModal, setShowConverterModal] = useState(false);
   const [showVisualizerModal, setShowVisualizerModal] = useState(false);
+  const [showCurlModal, setShowCurlModal] = useState(false);
   const [showDiff, setShowDiff] = useState(false);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc" | null>(null);
   const preSortJsonRef = useRef<string | null>(null);
@@ -243,6 +245,7 @@ export default function Home() {
                 onGenerateModel={() => setShowModelModal(true)}
                 onFormatConvert={() => setShowConverterModal(true)}
                 onVisualize={() => setShowVisualizerModal(true)}
+                onImportCurl={() => setShowCurlModal(true)}
               />
             </aside>
           </>
@@ -265,6 +268,12 @@ export default function Home() {
         json={jsonValue || "{}"}
         isOpen={showVisualizerModal}
         onClose={() => setShowVisualizerModal(false)}
+      />
+
+      <CurlImportModal
+        isOpen={showCurlModal}
+        onClose={() => setShowCurlModal(false)}
+        onImport={handleJsonChange}
       />
     </div>
   );
