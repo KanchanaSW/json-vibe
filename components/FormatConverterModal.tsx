@@ -6,8 +6,8 @@ interface FormatConverterModalProps {
   onClose: () => void;
 }
 
-// 1. Added "TOON" to the Format type
-type Format = "YAML" | "XML" | "CSV" | "TOON";
+// 1. Updated Format type to include "STRING"
+type Format = "YAML" | "XML" | "CSV" | "TOON" | "STRING";
 
 export default function FormatConverterModal({
   json,
@@ -33,8 +33,12 @@ export default function FormatConverterModal({
           case "CSV":
             result = toCSV(data);
             break;
-          case "TOON": // 2. Added case for TOON
+          case "TOON":
             result = toTOON(data);
+            break;
+          case "STRING":
+            // 2. String conversion: Minified, single-line response
+            result = JSON.stringify(data);
             break;
         }
         setOutput(result);
@@ -44,7 +48,6 @@ export default function FormatConverterModal({
     }
   }, [json, isOpen, activeFormat]);
 
-  // ... (renderCSVTable logic remains the same)
   const renderCSVTable = useMemo(() => {
     if (activeFormat !== "CSV" || !output || output.startsWith("Error"))
       return null;
@@ -247,19 +250,21 @@ export default function FormatConverterModal({
               Converter
             </h3>
             <div className="flex bg-black/40 rounded-lg p-1 border border-white/5">
-              {(["YAML", "XML", "CSV", "TOON"] as Format[]).map((format) => (
-                <button
-                  key={format}
-                  onClick={() => setActiveFormat(format)}
-                  className={`px-4 py-1.5 text-xs rounded-md font-bold transition-all ${
-                    activeFormat === format
-                      ? "bg-purple-600 text-white shadow-lg"
-                      : "text-zinc-500 hover:text-zinc-300"
-                  }`}
-                >
-                  {format}
-                </button>
-              ))}
+              {(["YAML", "XML", "CSV", "TOON", "STRING"] as Format[]).map(
+                (format) => (
+                  <button
+                    key={format}
+                    onClick={() => setActiveFormat(format)}
+                    className={`px-4 py-1.5 text-xs rounded-md font-bold transition-all ${
+                      activeFormat === format
+                        ? "bg-purple-600 text-white shadow-lg"
+                        : "text-zinc-500 hover:text-zinc-300"
+                    }`}
+                  >
+                    {format}
+                  </button>
+                )
+              )}
             </div>
           </div>
           <button
@@ -294,9 +299,18 @@ export default function FormatConverterModal({
                   ))}
                 </div>
 
-                <pre className="text-sm font-mono leading-6 whitespace-pre">
+                {/* whitespace-pre-wrap and break-all added to handle long single-line strings */}
+                <pre className="text-sm font-mono leading-6 whitespace-pre-wrap break-all">
                   {output.split("\n").map((line, i) => {
-                    // 1. XML Logic
+                    // 3. String highlighting logic
+                    if (activeFormat === "STRING") {
+                      return (
+                        <div key={i} className="text-emerald-400">
+                          {line}
+                        </div>
+                      );
+                    }
+
                     if (activeFormat === "XML") {
                       const xmlMatch = line.match(
                         /^(\s*)(<[^>]+>)([^<]*)(<[^>]+>)$/
@@ -331,7 +345,6 @@ export default function FormatConverterModal({
                       );
                     }
 
-                    // 2. YAML Logic
                     if (activeFormat === "YAML") {
                       const parts = line.split(/:(.*)/);
                       if (parts.length > 1) {
@@ -367,9 +380,7 @@ export default function FormatConverterModal({
                       );
                     }
 
-                    // 3. Added TOON (TOML) Logic
                     if (activeFormat === "TOON") {
-                      // Handle Sections like [header] or [[array]]
                       if (line.trim().startsWith("[")) {
                         return (
                           <div key={i} className="text-purple-400 font-bold">
@@ -377,7 +388,6 @@ export default function FormatConverterModal({
                           </div>
                         );
                       }
-                      // Handle key = value
                       const parts = line.split(/=(.*)/);
                       if (parts.length > 1) {
                         const keyPart = parts[0];
@@ -450,9 +460,8 @@ export default function FormatConverterModal({
   );
 }
 
-// ... (Existing toYAML, toXML, toCSV functions)
+// --- Helper Functions ---
 
-// 4. Added toTOON (TOML-style) conversion function
 function toTOON(data: any): string {
   const formatValue = (val: any): string => {
     if (typeof val === "string") return `"${val.replace(/"/g, '\\"')}"`;
@@ -466,10 +475,8 @@ function toTOON(data: any): string {
     let result = "";
     const complexKeys: string[] = [];
     const simpleKeys: string[] = [];
-
     if (typeof obj !== "object" || obj === null) return String(obj);
 
-    // Separate simple values from nested objects/arrays of objects
     Object.keys(obj).forEach((key) => {
       const val = obj[key];
       if (
@@ -483,23 +490,19 @@ function toTOON(data: any): string {
       }
     });
 
-    // 1. Process Simple Keys first (TOML requirement)
     simpleKeys.forEach((key) => {
       result += `${key} = ${formatValue(obj[key])}\n`;
     });
 
-    // 2. Process Complex Keys
     complexKeys.forEach((key) => {
       const val = obj[key];
       const fullKey = prefix ? `${prefix}.${key}` : key;
 
       if (Array.isArray(val)) {
-        // Array of tables [[table]]
         val.forEach((item) => {
           result += `\n[[${fullKey}]]\n${dump(item, fullKey)}`;
         });
       } else {
-        // Single table [table]
         result += `\n[${fullKey}]\n${dump(val, fullKey)}`;
       }
     });
@@ -535,7 +538,6 @@ function toYAML(data: any): string {
     return keys
       .map((key) => {
         const val = obj[key];
-        // Corrected: Include the 'key' before the colon
         if (
           typeof val === "object" &&
           val !== null &&
@@ -552,16 +554,12 @@ function toYAML(data: any): string {
 
 function toXML(data: any): string {
   const indentSize = 2;
-
   const toXmlRec = (obj: any, name: string, level: number): string => {
     const spacing = " ".repeat(level * indentSize);
-
     if (obj === null) return `${spacing}<${name}>null</${name}>\n`;
-
     if (Array.isArray(obj)) {
       return obj.map((item) => toXmlRec(item, name, level)).join("");
     }
-
     if (typeof obj === "object") {
       let children = "";
       for (const key in obj) {
@@ -570,7 +568,6 @@ function toXML(data: any): string {
       }
       return `${spacing}<${name}>\n${children}${spacing}</${name}>\n`;
     }
-
     const escapedValue = String(obj)
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
@@ -584,17 +581,11 @@ function toXML(data: any): string {
 }
 
 function toCSV(data: any): string {
-  // If it's a single object, wrap it in an array so it can be processed as one row
   const normalizedData = Array.isArray(data) ? data : [data];
-
-  // Validation: ensure the input isn't null or a primitive at the top level
   if (data === null || typeof data !== "object") {
     return "Error: Invalid JSON input for CSV conversion.";
   }
-
   if (normalizedData.length === 0) return "";
-
-  // 1. Extract Headers
   const allKeys = new Set<string>();
   normalizedData.forEach((item) => {
     if (typeof item === "object" && item !== null) {
@@ -605,23 +596,17 @@ function toCSV(data: any): string {
   });
 
   const headers = Array.from(allKeys);
-
-  // 2. Helper to escape values for CSV (RFC 4180)
   const formatValue = (val: any) => {
     if (val === undefined || val === null) return "";
     let str = typeof val === "object" ? JSON.stringify(val) : String(val);
-    // Double-up quotes and wrap in quotes
     return `"${str.replace(/"/g, '""')}"`;
   };
 
-  // 3. Create Rows
   const csvRows = [headers.map((h) => formatValue(h)).join(",")];
-
   normalizedData.forEach((item) => {
     const row = headers.map((header) => {
       let val;
       if (typeof item === "object" && item !== null) {
-        // Use type assertion to access key safely
         val = (item as any)[header];
       } else if (header === "Value") {
         val = item;
