@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 import { json } from "@codemirror/lang-json";
 import { EditorView } from "@codemirror/view";
-import jp from "jsonpath";
+import { JSONPath } from "jsonpath-plus";
 
 export default function JsonEditor({
   value,
@@ -54,7 +54,7 @@ export default function JsonEditor({
     try {
       const jsonDoc = JSON.parse(value);
       try {
-        const results = jp.query(jsonDoc, filter);
+        const results = JSONPath({ path: filter, json: jsonDoc });
         return {
           displayValue: JSON.stringify(results, null, 2),
           isReadOnly: true,
@@ -75,6 +75,14 @@ export default function JsonEditor({
       };
     }
   }, [value, filter]);
+
+  const stats = useMemo(() => {
+    const encoder = new TextEncoder();
+    const rawBytes = encoder.encode(displayValue).length;
+    const rawKb = (rawBytes / 1024).toFixed(2);
+
+    return { rawKb };
+  }, [displayValue]);
 
   return (
     <section className="flex-1 flex flex-col min-h-0 h-full w-full bg-black relative overflow-hidden">
@@ -120,7 +128,12 @@ export default function JsonEditor({
         <div>
           LN {cursor.line}, COL {cursor.col}
         </div>
-        <div>{displayValue.length} CHARS</div>
+        <div className="flex gap-4">
+          <span>
+            {stats.rawKb} KB
+          </span>
+          <span>{displayValue.length} CHARS</span>
+        </div>
       </div>
     </section>
   );
