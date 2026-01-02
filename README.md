@@ -17,6 +17,7 @@ A modern, ultra-minimalist dark mode JSON Editor built with Next.js, React, and 
 - � **URL-based State** - JSON state automatically stored in URL hash with LZ-String compression
 -  **Share & Copy Link** - Easy sharing via URL with native Web Share API support
 - 📦 **Data Model Generation** - Generate TypeScript, Kotlin, Java, Rust, Go, and Swift models from your JSON
+- 🕸️ **Schema Visualization** - Interactive ERD-style visualization of JSON structure with image export
 -  **Secure Sharing** - Password protect your JSON data with AES-GCM encryption before sharing
 - 📱 **QR Code Sharing** - Generate QR codes for instant mobile sharing
 -  **Fully Responsive** - Works seamlessly on all device sizes with mobile-optimized UI
@@ -92,6 +93,7 @@ npm start
   - `@codemirror/lang-json` - JSON language support
   - `@codemirror/theme-one-dark` - Dark theme
 - **React Diff Viewer** - Side-by-side and unified diff visualization with syntax highlighting
+- **React Flow** - Node-based graph visualization library
 - **JSONPath** - Powerful query language for JSON data filtering
 - **LZ-String** - URL compression for efficient state management
 - **Lucide React** - Beautiful, consistent icon library
@@ -113,6 +115,7 @@ json-vibe/
 │   ├── JsonTreeViewer.tsx     # Interactive JSON tree visualization
 │   ├── DataModelModal.tsx     # Modal for generating data models
 │   ├── FormatConverterModal.tsx # Modal for converting JSON to other formats
+│   ├── JsonVisualizerModal.tsx # Modal for visualizing JSON schema graph
 │   └── DiffViewer.tsx         # Side-by-side diff comparison component
 ├── hooks/
 │   └── useUrlState.ts         # URL-based state management with compression
@@ -143,6 +146,7 @@ The color scheme and styling can be customized in `tailwind.config.ts`. The desi
 9. **Convert Format**: Transform JSON into YAML, XML, or CSV formats with the built-in converter
 10. **Secure**: Click "Secure" to encrypt your JSON with a password before sharing
 11. **Compare Changes**: Click the "Diff" button (visible when modified) to toggle a powerful diff view with split/unified modes
+12. **Visualize**: Click "Visualize" in the tree view to generate an interactive graph diagram of your JSON structure
 
 ## 🔗 URL State Management
 
