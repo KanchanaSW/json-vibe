@@ -20,7 +20,8 @@ A modern, ultra-minimalist dark mode JSON Editor built with Next.js, React, and 
 - 📦 **Data Model Generation** - Generate TypeScript, Kotlin, Java, Rust, Go, and Swift models from your JSON
 - 🕸️ **Schema Visualization** - Interactive ERD-style visualization of JSON structure with image export
 -  **Secure Sharing** - Password protect your JSON data with AES-GCM encryption before sharing
-- 📱 **QR Code Sharing** - Generate QR codes for instant mobile sharing
+- 🔌 **Import from cURL** - Fetch JSON data directly by pasting cURL commands (client-side execution)
+- � **QR Code Sharing** - Generate QR codes for instant mobile sharing
 -  **Fully Responsive** - Works seamlessly on all device sizes with mobile-optimized UI
 - ⚡ **Fast & Modern** - Built with Next.js 14 App Router for optimal performance
 - 🎯 **Zero Backend** - Fully client-side application with no server required
@@ -148,6 +149,7 @@ The color scheme and styling can be customized in `tailwind.config.ts`. The desi
 10. **Secure**: Click "Secure" to encrypt your JSON with a password before sharing
 11. **Compare Changes**: Click the "Diff" button (visible when modified) to toggle a powerful diff view with split/unified modes
 12. **Visualize**: Click "Visualize" in the tree view to generate an interactive graph diagram of your JSON structure
+13. **Import cURL**: Click "Import cURL" in the tree view to fetch data from an API endpoint
 
 ## 🔗 URL State Management
 
