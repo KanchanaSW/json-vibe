@@ -10,7 +10,8 @@ A modern, ultra-minimalist dark mode JSON Editor built with Next.js, React, and 
 - 📝 **Professional Code Editor** - CodeMirror-powered editor with JSON syntax highlighting and IntelliSense
 - 🌳 **Interactive Tree Viewer** - Visualize JSON structure with expand/collapse functionality (desktop only)
 - ✅ **Real-time Validation** - Instant JSON validation feedback with visual indicators
-- 🔍 **Smart Diff Viewer** - Compare original vs modified JSON with Split/Unified views and toggleable formatting
+- 📊 **Size Analytics** - Real-time size calculation (raw vs minified) and character count
+-  **Smart Diff Viewer** - Compare original vs modified JSON with Split/Unified views and toggleable formatting
 - 🔎 **JSONPath Filtering** - Filter and query your JSON data in real-time using standard JSONPath syntax
 -  **Format & Minify** - One-click JSON formatting with proper indentation or minification
 - 🔄 **Format Conversion** - Convert JSON to YAML, XML, or CSV with real-time preview and syntax highlighting
@@ -94,7 +95,7 @@ npm start
   - `@codemirror/theme-one-dark` - Dark theme
 - **React Diff Viewer** - Side-by-side and unified diff visualization with syntax highlighting
 - **React Flow** - Node-based graph visualization library
-- **JSONPath** - Powerful query language for JSON data filtering
+- **JSONPath Plus** - Powerful query language for JSON data filtering
 - **LZ-String** - URL compression for efficient state management
 - **Lucide React** - Beautiful, consistent icon library
 - **QRCode.react** - QR code generation for easy mobile sharing
