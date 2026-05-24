@@ -23,8 +23,9 @@ A modern, ultra-minimalist dark mode JSON Editor built with Next.js, React, and 
 - 🔌 **Import from cURL** - Fetch JSON data directly by pasting cURL commands (client-side execution)
 - � **QR Code Sharing** - Generate QR codes for instant mobile sharing
 -  **Fully Responsive** - Works seamlessly on all device sizes with mobile-optimized UI
+- 📸 **Screenshot → JSON** - Upload UI screenshots, run OCR + AI layout analysis, preview semantic JSON ([`/tools/screenshot-json`](/tools/screenshot-json))
 - ⚡ **Fast & Modern** - Built with Next.js 14 App Router for optimal performance
-- 🎯 **Zero Backend** - Fully client-side application with no server required
+- 🎯 **Mostly Client-side** - JSON editor runs fully in the browser; screenshot analysis uses a server API route
 
 ## 🚀 Getting Started
 
@@ -52,15 +53,19 @@ yarn install
 pnpm install
 ```
 
-3. Set up environment variables (optional):
+3. Set up environment variables:
 
-Create a `.env.local` file in the root directory and add your Google Analytics Measurement ID:
+Copy `.env.example` to `.env.local` and configure as needed:
 
 ```bash
+# Optional — Google Analytics
 NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
+
+# Required for Screenshot → JSON feature (/tools/screenshot-json)
+GROQ_API_KEY=gsk_...
 ```
 
-To get your Measurement ID:
+To get your Google Analytics Measurement ID:
 - Go to [Google Analytics](https://analytics.google.com/)
 - Create a GA4 property (if you don't have one)
 - Navigate to Admin → Data Streams → Web Stream
@@ -77,6 +82,12 @@ pnpm dev
 ```
 
 5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### Screenshot → JSON
+
+Navigate to [`/tools/screenshot-json`](/tools/screenshot-json) to upload a UI screenshot (PNG/JPG/WebP, max 10MB). The pipeline runs OCR (Tesseract.js) and AI layout analysis (Groq vision) server-side and returns structured JSON with a live preview.
+
+**Deployment note (Netlify):** OCR + AI can take 15–60 seconds locally (`maxDuration = 120`). Netlify function timeouts default to 10s (26s max on Pro). For reliable production runs, request a timeout increase from Netlify support or run the feature locally with `npm run dev`.
 
 ### Build for Production
 
@@ -100,7 +111,10 @@ npm start
 - **LZ-String** - URL compression for efficient state management
 - **Lucide React** - Beautiful, consistent icon library
 - **QRCode.react** - QR code generation for easy mobile sharing
-- **Web Crypto API** - Native browser API for secure AES-GCM encryption
+- **Groq SDK** - Vision AI for screenshot layout analysis
+- **Tesseract.js** - Server-side OCR
+- **Zod** - API response validation
+- **Zustand** - Screenshot → JSON feature state
 
 ## 📁 Project Structure
 

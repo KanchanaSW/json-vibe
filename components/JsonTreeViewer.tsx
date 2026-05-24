@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Link from "next/link";
 import { ChevronDown, ChevronRight, Search } from "lucide-react";
 
 export default function JsonTreeViewer({
@@ -135,6 +136,27 @@ export default function JsonTreeViewer({
           </svg>
           Format Converters
         </button>
+        <Link
+          href="/tools/screenshot-json"
+          className="flex w-full justify-center items-center gap-2 px-3 py-1.5 text-xs font-medium text-zinc-300 bg-zinc-800 hover:bg-zinc-700 hover:text-white rounded border border-white/10 transition-colors"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect x="3" y="3" width="18" height="18" rx="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <path d="M21 15l-5-5L5 21" />
+          </svg>
+          Screenshot → JSON
+        </Link>
       </div>
       <div className="flex items-center gap-1 px-4 py-2 bg-zinc-900/50 border-b border-white/5 shrink-0">
         <button
