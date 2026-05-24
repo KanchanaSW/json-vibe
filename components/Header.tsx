@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import {
   Share2,
   Link2,
@@ -14,6 +15,7 @@ import {
   ArrowDownAZ,
   ArrowUpAZ,
   RotateCcw,
+  ImageIcon,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 
@@ -263,6 +265,16 @@ export default function Header({
         </div>
 
         <div className="flex items-center gap-3">
+          <SimpleTooltip text="Screenshot → JSON">
+            <Link
+              href="/tools/screenshot-json"
+              className="flex items-center gap-2 h-9 px-3 sm:px-4 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-sm font-medium rounded-lg border border-zinc-800 transition-all"
+            >
+              <ImageIcon size={16} />
+              <span className="hidden sm:inline">Screenshot → JSON</span>
+            </Link>
+          </SimpleTooltip>
+
           {/* QR Code */}
           <div className="relative">
             <SimpleTooltip text="Show QR Code">
