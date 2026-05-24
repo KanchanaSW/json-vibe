@@ -86,6 +86,8 @@ export interface GenerateResponse {
   ocr: import("./ocr").TextBlock[];
   result: UiPage;
   ocrFailed?: boolean;
+  generationId?: string;
+  historySaveFailed?: boolean;
 }
 
 export interface ApiErrorResponse {

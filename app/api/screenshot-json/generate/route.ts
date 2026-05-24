@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
+import { saveGeneration } from "@/lib/convex-server";
 import { runOcr } from "@/services/ocr";
 import {
   isAiTimeoutError,
@@ -31,7 +32,7 @@ function errorResponse(
 }
 
 export async function POST(request: Request) {
-  const { userId } = await auth();
+  const { userId, getToken } = await auth();
   if (!userId) {
     return errorResponse(
       "Sign in with Google required",
@@ -44,6 +45,11 @@ export async function POST(request: Request) {
   try {
     const formData = await request.formData();
     const file = formData.get("file");
+    const thumbnail = formData.get("thumbnail");
+    const thumbnailDataUrl =
+      typeof thumbnail === "string" && thumbnail.startsWith("data:")
+        ? thumbnail
+        : undefined;
 
     if (!file || !(file instanceof File)) {
       return errorResponse(
@@ -115,10 +121,30 @@ export async function POST(request: Request) {
       );
     }
 
+    let generationId: string | undefined;
+    let historySaveFailed = false;
+
+    try {
+      const token = await getToken({ template: "convex" });
+      if (token && process.env.NEXT_PUBLIC_CONVEX_URL) {
+        generationId = await saveGeneration(token, {
+          ocr: textBlocks,
+          uiJson: result,
+          ocrFailed: ocrFailed || undefined,
+          thumbnailDataUrl,
+        });
+      }
+    } catch (err) {
+      console.error("Failed to save generation to Convex:", err);
+      historySaveFailed = true;
+    }
+
     return NextResponse.json({
       ocr: textBlocks,
       result,
       ...(ocrFailed ? { ocrFailed: true } : {}),
+      ...(generationId ? { generationId } : {}),
+      ...(historySaveFailed ? { historySaveFailed: true } : {}),
     });
   } catch (err) {
     return errorResponse(

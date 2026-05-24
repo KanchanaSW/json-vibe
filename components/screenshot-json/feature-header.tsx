@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 import { ArrowLeft, ImageIcon } from "lucide-react";
 import { AuthUserMenu } from "@/components/auth-user-menu";
 
 export default function FeatureHeader() {
   const pathname = usePathname();
+  const { isSignedIn } = useAuth();
   const isGenerate = pathname === "/tools/screenshot-json";
   const isHistory = pathname === "/tools/screenshot-json/history";
 
@@ -40,16 +42,18 @@ export default function FeatureHeader() {
           >
             Generate
           </Link>
-          <Link
-            href="/tools/screenshot-json/history"
-            className={`px-3 py-1.5 text-xs rounded-md font-medium transition-all ${
-              isHistory
-                ? "bg-primary text-white shadow-neon"
-                : "text-zinc-500 hover:text-zinc-300"
-            }`}
-          >
-            History
-          </Link>
+          {isSignedIn && (
+            <Link
+              href="/tools/screenshot-json/history"
+              className={`px-3 py-1.5 text-xs rounded-md font-medium transition-all ${
+                isHistory
+                  ? "bg-primary text-white shadow-neon"
+                  : "text-zinc-500 hover:text-zinc-300"
+              }`}
+            >
+              History
+            </Link>
+          )}
         </nav>
         <AuthUserMenu />
       </div>

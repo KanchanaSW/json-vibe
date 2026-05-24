@@ -71,6 +71,11 @@ NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
 NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
 NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/
 NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/
+CLERK_JWT_ISSUER_DOMAIN=https://your-clerk-frontend-api.clerk.accounts.dev
+
+# Convex — generation history storage (see Convex section below)
+NEXT_PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
+CONVEX_DEPLOYMENT=dev:your-deployment
 ```
 
 Copy `.env.example` as a starting point if you prefer placeholder values.
@@ -81,7 +86,16 @@ To get your Google Analytics Measurement ID:
 - Navigate to Admin → Data Streams → Web Stream
 - Copy your Measurement ID (format: `G-XXXXXXXXXX`)
 
-4. Run the development server:
+4. Run the development servers:
+
+In one terminal, start Convex (required for generation history):
+
+```bash
+npm run dev:convex
+# or: npx convex dev
+```
+
+In another terminal, start Next.js:
 
 ```bash
 npm run dev
@@ -108,6 +122,18 @@ Screenshot → JSON generation and history require Google sign-in via [Clerk](ht
 
 Do not enable email/password, magic links, phone, or other OAuth providers.
 
+### Clerk ↔ Convex auth
+
+Generation history is stored in [Convex](https://convex.dev) and scoped per signed-in user.
+
+1. In the Clerk Dashboard, activate the [Convex integration](https://dashboard.clerk.com/apps/setup/convex) — this creates a JWT template named `convex`.
+2. Copy your Clerk **Frontend API URL** (issuer domain) into `.env.local` as `CLERK_JWT_ISSUER_DOMAIN` (e.g. `https://your-app.clerk.accounts.dev`).
+3. Set the same value on your Convex deployment:
+   ```bash
+   npx convex env set CLERK_JWT_ISSUER_DOMAIN https://your-app.clerk.accounts.dev
+   ```
+4. Run `npx convex dev` to sync `convex/auth.config.ts` to your deployment.
+
 ### Environment variables
 
 | Variable | Purpose |
@@ -118,13 +144,16 @@ Do not enable email/password, magic links, phone, or other OAuth providers.
 | `NEXT_PUBLIC_CLERK_SIGN_UP_URL` | Sign-up page path (`/sign-up`) |
 | `NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL` | Redirect after sign-in (`/`) |
 | `NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL` | Redirect after sign-up (`/`) |
+| `CLERK_JWT_ISSUER_DOMAIN` | Clerk Frontend API URL for Convex JWT validation |
+| `NEXT_PUBLIC_CONVEX_URL` | Convex deployment client URL |
+| `CONVEX_DEPLOYMENT` | Convex deployment name (set by `npx convex dev`) |
 
 ### Route access
 
 | Route | Access |
 |-------|--------|
 | `/` | Public — full JSON editor |
-| `/tools/screenshot-json` | Public to view; **Generate** requires Google sign-in |
+| `/tools/screenshot-json` | Public to view; **Generate** and **History** tab require Google sign-in |
 | `/tools/screenshot-json/history` | Requires Google sign-in |
 | `POST /api/screenshot-json/generate` | Requires Google sign-in (401 if anonymous) |
 | `/sign-in`, `/sign-up` | Public auth pages (Google button only) |
@@ -135,14 +164,16 @@ Do not enable email/password, magic links, phone, or other OAuth providers.
 2. Run `npm run dev` and open `/` — editor works without login.
 3. Visit `/tools/screenshot-json`, upload an image, click **Generate JSON** while signed out — toast prompts sign-in.
 4. Sign in at `/sign-in` (only Google button should appear).
-5. After sign-in, generate should succeed (requires valid `GROQ_API_KEY`).
+5. After sign-in, generate should succeed (requires valid `GROQ_API_KEY` and running Convex dev).
 6. Visit `/tools/screenshot-json/history` while signed out — redirects to `/sign-in`.
+7. After generating while signed in, open **History** — the item should appear without manual refresh.
+8. Click a history item to load it into the generate page; delete removes it from your account.
 
 ### Screenshot → JSON
 
 Open the tool from the **Screenshot → JSON** button in the main header toolbar, or go directly to [`/tools/screenshot-json`](/tools/screenshot-json).
 
-Upload a UI screenshot (PNG/JPG/WebP, max 10MB). The pipeline runs OCR (Tesseract.js) and AI layout analysis (Groq vision) server-side and returns structured JSON with a live preview. **Sign in with Google** is required to generate. Generated results are saved to local history at [`/tools/screenshot-json/history`](/tools/screenshot-json/history) (sign-in required).
+Upload a UI screenshot (PNG/JPG/WebP, max 10MB). The pipeline runs OCR (Tesseract.js) and AI layout analysis (Groq vision) server-side and returns structured JSON with a live preview. **Sign in with Google** is required to generate. Successful generations are saved to your account in Convex (last 20 items) and appear at [`/tools/screenshot-json/history`](/tools/screenshot-json/history) — the **History** tab is visible only when signed in.
 
 **Deployment note (Netlify):** OCR + AI can take 15–60 seconds locally (`maxDuration = 120`). Netlify function timeouts default to 10s (26s max on Pro). For reliable production runs, request a timeout increase from Netlify support or run the feature locally with `npm run dev`.
 
@@ -173,13 +204,25 @@ npm start
 - **Zod** - API response validation
 - **Zustand** - Screenshot → JSON feature state
 - **Clerk** - Google-only authentication for screenshot features
+- **Convex** - Per-user generation history storage
+
+## Convex setup
+
+1. Install dependencies (`npm install` includes the `convex` package).
+2. Run `npx convex dev` — creates a deployment, writes `NEXT_PUBLIC_CONVEX_URL` and `CONVEX_DEPLOYMENT` to `.env.local`, and syncs functions.
+3. Configure Clerk ↔ Convex auth (see **Clerk ↔ Convex auth** above).
+4. Keep `npm run dev:convex` running alongside `npm run dev` during local development.
+
+For production, run `npx convex deploy` and set the same environment variables on your hosting provider and Convex dashboard.
+
+Thumbnails are stored as compressed JPEG data URLs in Convex documents (small ~200px wide thumbs). File storage via Convex actions can be added later if needed.
 
 ## 📁 Project Structure
 
 ```
 json-vibe/
 ├── app/
-│   ├── layout.tsx                          # Root layout with ClerkProvider + metadata
+│   ├── layout.tsx                          # Root layout with ClerkProvider + ConvexClientProvider
 │   ├── page.tsx                            # Main JSON editor page
 │   ├── globals.css                         # Global styles and Tailwind imports
 │   ├── sign-in/[[...sign-in]]/page.tsx     # Google-only sign-in
@@ -191,10 +234,11 @@ json-vibe/
 │       └── screenshot-json/
 │           ├── layout.tsx                  # Screenshot tool layout & metadata
 │           ├── page.tsx                    # Upload, generate, preview UI
-│           └── history/page.tsx            # Local generation history
+│           └── history/page.tsx            # Convex-backed generation history
 ├── components/
 │   ├── Header.tsx                          # Header toolbar, share actions, auth menu
 │   ├── auth-user-menu.tsx                  # Clerk SignedIn/SignedOut controls
+│   ├── convex-client-provider.tsx          # ConvexProviderWithClerk wrapper
 │   ├── JsonEditor.tsx                      # Main JSON editor component
 │   ├── JsonEditorCodeMirror.tsx            # CodeMirror implementation
 │   ├── JsonTreeViewer.tsx                  # Interactive JSON tree visualization
@@ -212,10 +256,14 @@ json-vibe/
 ├── hooks/
 │   ├── useUrlState.ts                      # URL-based state with compression
 │   ├── use-generate.ts                     # Screenshot generation hook
-│   └── use-history.ts                      # Local history hook
+│   └── use-history.ts                      # Convex history hook
+├── convex/
+│   ├── schema.ts                           # generations table schema
+│   ├── generations.ts                      # create, listForUser, remove
+│   └── auth.config.ts                      # Clerk JWT auth config
 ├── lib/
 │   ├── clerk-appearance.ts                 # Clerk dark theme (Google-only UI)
-│   ├── history.ts                          # History storage helpers
+│   ├── convex-server.ts                    # Server-side Convex HTTP client
 │   ├── schemas.ts                          # Zod schemas
 │   ├── normalize-ui.ts                     # UI JSON normalization
 │   └── coerce-ai-ui.ts                     # AI output coercion
@@ -226,6 +274,7 @@ json-vibe/
 │   └── screenshot-json-store.ts            # Zustand store for screenshot tool
 ├── types/
 │   ├── ui-schema.ts                        # Semantic UI JSON types
+│   ├── generation.ts                       # Generation history UI types
 │   └── ocr.ts                              # OCR result types
 ├── middleware.ts                           # Clerk route protection
 ├── tailwind.config.ts                      # Tailwind configuration with custom theme

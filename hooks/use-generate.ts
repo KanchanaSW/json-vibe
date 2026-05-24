@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { addHistoryItem } from "@/lib/history";
 import { useScreenshotJsonStore } from "@/store/screenshot-json-store";
 import type { ApiErrorResponse, GenerateResponse } from "@/types/ui-schema";
 
@@ -49,6 +48,9 @@ export function useGenerate(onToast?: (toast: ToastMessage) => void) {
 
     const formData = new FormData();
     formData.append("file", imageFile);
+    if (thumbnailUrl) {
+      formData.append("thumbnail", thumbnailUrl);
+    }
 
     try {
       setStatus("ocr");
@@ -78,18 +80,13 @@ export function useGenerate(onToast?: (toast: ToastMessage) => void) {
           type: "warning",
           message: "OCR failed — using vision-only analysis",
         });
+      } else if (result.historySaveFailed) {
+        onToast?.({
+          type: "warning",
+          message: "JSON generated but history could not be saved",
+        });
       } else {
         onToast?.({ type: "success", message: "JSON generated successfully" });
-      }
-
-      if (thumbnailUrl) {
-        addHistoryItem({
-          id: crypto.randomUUID(),
-          createdAt: new Date().toISOString(),
-          thumbnail: thumbnailUrl,
-          ocr: result.ocr,
-          uiJson: result.result,
-        });
       }
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") return;

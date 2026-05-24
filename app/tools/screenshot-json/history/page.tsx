@@ -5,6 +5,7 @@ import { Trash2, Clock } from "lucide-react";
 import FeatureHeader from "@/components/screenshot-json/feature-header";
 import { useHistory } from "@/hooks/use-history";
 import { useScreenshotJsonStore } from "@/store/screenshot-json-store";
+import type { GenerationListItem } from "@/types/generation";
 
 function formatRelativeTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -22,7 +23,7 @@ export default function HistoryPage() {
   const { items, loaded, remove } = useHistory();
   const loadFromHistory = useScreenshotJsonStore((s) => s.loadFromHistory);
 
-  const handleLoad = (item: (typeof items)[0]) => {
+  const handleLoad = (item: GenerationListItem) => {
     loadFromHistory({
       thumbnail: item.thumbnail,
       ocr: item.ocr,
@@ -37,7 +38,7 @@ export default function HistoryPage() {
       <main className="flex-1 overflow-auto custom-scrollbar p-4 lg:p-6">
         <h1 className="text-xl font-bold mb-2">Generation History</h1>
         <p className="text-sm text-zinc-400 mb-6">
-          Last 20 generations stored locally in your browser.
+          Your last 20 generations, saved to your account.
         </p>
 
         {!loaded ? (
@@ -57,21 +58,27 @@ export default function HistoryPage() {
                   onClick={() => handleLoad(item)}
                   className="w-full text-left"
                 >
-                  <img
-                    src={item.thumbnail}
-                    alt="Screenshot thumbnail"
-                    className="w-full h-32 object-cover bg-zinc-800"
-                  />
+                  {item.thumbnail ? (
+                    <img
+                      src={item.thumbnail}
+                      alt="Screenshot thumbnail"
+                      className="w-full h-32 object-cover bg-zinc-800"
+                    />
+                  ) : (
+                    <div className="w-full h-32 bg-zinc-800" />
+                  )}
                   <div className="p-3">
                     <div className="flex items-center gap-1.5 text-xs text-zinc-500">
                       <Clock size={12} />
                       {formatRelativeTime(item.createdAt)}
                     </div>
                     <p className="text-sm text-zinc-300 mt-1 capitalize">
-                      {item.uiJson.page.type} · {item.uiJson.page.theme}
+                      {item.pageType ?? item.uiJson.page.type} ·{" "}
+                      {item.pageTheme ?? item.uiJson.page.theme}
                     </p>
                     <p className="text-xs text-zinc-500 mt-0.5">
-                      {item.uiJson.page.sections.length} sections
+                      {item.sectionCount ?? item.uiJson.page.sections.length}{" "}
+                      sections
                     </p>
                   </div>
                 </button>

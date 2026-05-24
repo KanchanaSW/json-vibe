@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { ClerkProvider } from '@clerk/nextjs'
 import { GoogleAnalytics } from '@next/third-parties/google'
+import { ConvexClientProvider } from '@/components/convex-client-provider'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -98,7 +99,9 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className="h-screen flex flex-col overflow-hidden selection:bg-primary/30 selection:text-white">
         <ClerkProvider>
-          {children}
+          <ConvexClientProvider>
+            {children}
+          </ConvexClientProvider>
           {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
             <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
           )}
