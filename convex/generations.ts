@@ -1,5 +1,7 @@
 import { v } from "convex/values";
+import type { Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
+import type { MutationCtx, QueryCtx } from "./_generated/server";
 
 const MAX_GENERATIONS = 20;
 
@@ -11,6 +13,21 @@ function getPageMeta(uiJson: unknown) {
     pageTheme: page?.theme,
     sectionCount: page?.sections?.length,
   };
+}
+
+async function getOwnedGeneration(
+  ctx: QueryCtx | MutationCtx,
+  id: Id<"generations">
+) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    return null;
+  }
+  const doc = await ctx.db.get(id);
+  if (!doc || doc.userId !== identity.subject) {
+    return null;
+  }
+  return doc;
 }
 
 export const create = mutation({
@@ -102,5 +119,90 @@ export const remove = mutation({
     }
 
     await ctx.db.delete(args.id);
+  },
+});
+
+export const getPublicMock = query({
+  args: {
+    id: v.id("generations"),
+  },
+  handler: async (ctx, args) => {
+    const doc = await ctx.db.get(args.id);
+    if (!doc || doc.mockApiEnabled !== true || doc.mockApiJson === undefined) {
+      return null;
+    }
+    return doc.mockApiJson;
+  },
+});
+
+export const getMockForOwner = query({
+  args: {
+    id: v.id("generations"),
+  },
+  handler: async (ctx, args) => {
+    const doc = await getOwnedGeneration(ctx, args.id);
+    if (!doc) {
+      return null;
+    }
+    return {
+      mockApiEnabled: doc.mockApiEnabled ?? false,
+      mockApiJson: doc.mockApiJson ?? null,
+      mockApiUpdatedAt: doc.mockApiUpdatedAt ?? null,
+      uiJson: doc.uiJson,
+    };
+  },
+});
+
+export const enableMockApi = mutation({
+  args: {
+    id: v.id("generations"),
+  },
+  handler: async (ctx, args) => {
+    const doc = await getOwnedGeneration(ctx, args.id);
+    if (!doc) {
+      throw new Error("Generation not found");
+    }
+
+    const now = Date.now();
+    await ctx.db.patch(args.id, {
+      mockApiEnabled: true,
+      mockApiJson: doc.mockApiJson ?? doc.uiJson,
+      mockApiUpdatedAt: now,
+    });
+  },
+});
+
+export const updateMockApi = mutation({
+  args: {
+    id: v.id("generations"),
+    mockApiJson: v.any(),
+  },
+  handler: async (ctx, args) => {
+    const doc = await getOwnedGeneration(ctx, args.id);
+    if (!doc) {
+      throw new Error("Generation not found");
+    }
+
+    await ctx.db.patch(args.id, {
+      mockApiEnabled: true,
+      mockApiJson: args.mockApiJson,
+      mockApiUpdatedAt: Date.now(),
+    });
+  },
+});
+
+export const disableMockApi = mutation({
+  args: {
+    id: v.id("generations"),
+  },
+  handler: async (ctx, args) => {
+    const doc = await getOwnedGeneration(ctx, args.id);
+    if (!doc) {
+      throw new Error("Generation not found");
+    }
+
+    await ctx.db.patch(args.id, {
+      mockApiEnabled: false,
+    });
   },
 });

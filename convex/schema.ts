@@ -12,5 +12,8 @@ export default defineSchema({
     pageType: v.optional(v.string()),
     pageTheme: v.optional(v.string()),
     sectionCount: v.optional(v.number()),
+    mockApiEnabled: v.optional(v.boolean()),
+    mockApiJson: v.optional(v.any()),
+    mockApiUpdatedAt: v.optional(v.number()),
   }).index("by_user_created", ["userId", "createdAt"]),
 });

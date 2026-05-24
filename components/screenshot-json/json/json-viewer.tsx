@@ -92,10 +92,12 @@ export default function JsonViewer({
   data,
   onCopy,
   onMockApi,
+  showMockApi = false,
 }: {
   data: unknown;
   onCopy?: () => void;
   onMockApi?: () => void;
+  showMockApi?: boolean;
 }) {
   const [tab, setTab] = useState<Tab>("raw");
 
@@ -107,19 +109,6 @@ export default function JsonViewer({
   const handleCopy = async () => {
     await navigator.clipboard.writeText(jsonString);
     onCopy?.();
-  };
-
-  const handleMockApi = async () => {
-    const mockPayload = {
-      method: "GET",
-      path: "/api/ui-layout",
-      status: 200,
-      response: data,
-    };
-    await navigator.clipboard.writeText(
-      JSON.stringify(mockPayload, null, 2)
-    );
-    onMockApi?.();
   };
 
   const handleDownload = () => {
@@ -151,13 +140,15 @@ export default function JsonViewer({
           ))}
         </div>
         <div className="flex gap-2">
-          <button
-            onClick={handleMockApi}
-            className="flex items-center gap-1 px-2 py-1 text-xs text-zinc-300 bg-zinc-800 hover:bg-zinc-700 rounded border border-white/10"
-          >
-            <Globe size={12} />
-            Mock API
-          </button>
+          {showMockApi && (
+            <button
+              onClick={() => onMockApi?.()}
+              className="flex items-center gap-1 px-2 py-1 text-xs text-zinc-300 bg-zinc-800 hover:bg-zinc-700 rounded border border-white/10"
+            >
+              <Globe size={12} />
+              Mock API
+            </button>
+          )}
           <button
             onClick={handleCopy}
             className="flex items-center gap-1 px-2 py-1 text-xs text-zinc-300 bg-zinc-800 hover:bg-zinc-700 rounded border border-white/10"

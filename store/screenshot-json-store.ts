@@ -19,17 +19,21 @@ interface ScreenshotJsonState {
   error: ApiErrorResponse | null;
   ocrFailed: boolean;
   thumbnailUrl: string | null;
+  generationId: string | null;
 
   setImage: (file: File, previewUrl: string, thumbnailUrl: string) => void;
+  setGenerationId: (id: string | null) => void;
   clearImage: () => void;
   setStatus: (status: PipelineStatus) => void;
   setResult: (
     ocr: TextBlock[],
     uiJson: UiPage,
-    ocrFailed?: boolean
+    ocrFailed?: boolean,
+    generationId?: string
   ) => void;
   setError: (error: ApiErrorResponse) => void;
   loadFromHistory: (data: {
+    id: string;
     thumbnail: string;
     ocr: TextBlock[];
     uiJson: UiPage;
@@ -46,6 +50,7 @@ const initialState = {
   error: null as ApiErrorResponse | null,
   ocrFailed: false,
   thumbnailUrl: null as string | null,
+  generationId: null as string | null,
 };
 
 export const useScreenshotJsonStore = create<ScreenshotJsonState>((set) => ({
@@ -61,30 +66,35 @@ export const useScreenshotJsonStore = create<ScreenshotJsonState>((set) => ({
       status: "idle",
       ocrResult: [],
       uiJson: null,
+      generationId: null,
     }),
+
+  setGenerationId: (generationId) => set({ generationId }),
 
   clearImage: () => set({ ...initialState }),
 
   setStatus: (status) => set({ status }),
 
-  setResult: (ocr, uiJson, ocrFailed = false) =>
+  setResult: (ocr, uiJson, ocrFailed = false, generationId) =>
     set({
       ocrResult: ocr,
       uiJson,
       ocrFailed,
       status: "done",
       error: null,
+      ...(generationId !== undefined ? { generationId } : {}),
     }),
 
   setError: (error) => set({ error, status: "error" }),
 
-  loadFromHistory: ({ thumbnail, ocr, uiJson }) =>
+  loadFromHistory: ({ id, thumbnail, ocr, uiJson }) =>
     set({
       imageFile: null,
       imagePreview: thumbnail,
       thumbnailUrl: thumbnail,
       ocrResult: ocr,
       uiJson,
+      generationId: id,
       status: "done",
       error: null,
       ocrFailed: false,

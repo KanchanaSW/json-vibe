@@ -9,6 +9,7 @@ import ProcessPipeline from "@/components/screenshot-json/process-pipeline";
 import Toast from "@/components/screenshot-json/toast";
 import { useScreenshotJsonStore } from "@/store/screenshot-json-store";
 import { useGenerate, type ToastMessage } from "@/hooks/use-generate";
+import { useMockApiNav } from "@/hooks/use-mock-api-nav";
 
 const JsonViewer = dynamic(
   () => import("@/components/screenshot-json/json/json-viewer"),
@@ -32,6 +33,7 @@ export default function ScreenshotJsonPage() {
   }, []);
 
   const { generate, retry } = useGenerate(handleToast);
+  const { openMockApi, isSignedIn } = useMockApiNav(handleToast);
 
   const isGenerating = ["uploading", "ocr", "ai"].includes(status);
   const canGenerate = !!imageFile && !isGenerating;
@@ -75,18 +77,14 @@ export default function ScreenshotJsonPage() {
             {uiJson ? (
               <JsonViewer
                 data={uiJson}
+                showMockApi={isSignedIn}
                 onCopy={() =>
                   setToast({
                     type: "success",
                     message: "Copied to clipboard",
                   })
                 }
-                onMockApi={() =>
-                  setToast({
-                    type: "success",
-                    message: "Mock API response copied to clipboard",
-                  })
-                }
+                onMockApi={openMockApi}
               />
             ) : (
               <div className="flex-1 flex items-center justify-center rounded-lg border border-dashed border-white/10 text-zinc-500 text-sm min-h-[400px]">

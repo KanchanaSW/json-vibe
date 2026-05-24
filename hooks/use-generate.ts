@@ -62,7 +62,12 @@ export function useGenerate(onToast?: (toast: ToastMessage) => void) {
       }
 
       const result = data as GenerateResponse;
-      setResult(result.ocr, result.result, result.ocrFailed);
+      setResult(
+        result.ocr,
+        result.result,
+        result.ocrFailed,
+        result.generationId
+      );
 
       if (result.ocrFailed) {
         onToast?.({

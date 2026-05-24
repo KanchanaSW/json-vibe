@@ -155,6 +155,8 @@ Generation history is stored in [Convex](https://convex.dev) and scoped per sign
 | `/` | Public — full JSON editor |
 | `/tools/screenshot-json` | Public to view; **Generate** and **History** tab require Google sign-in |
 | `/tools/screenshot-json/history` | Requires Google sign-in |
+| `/tools/screenshot-json/mock/[id]` | Requires Google sign-in; owner-only editor |
+| `GET /api/screenshot-json/mock/[id]` | Public read when mock API is enabled |
 | `POST /api/screenshot-json/generate` | Requires Google sign-in (401 if anonymous) |
 | `/sign-in`, `/sign-up` | Public auth pages (Google button only) |
 
@@ -169,11 +171,21 @@ Generation history is stored in [Convex](https://convex.dev) and scoped per sign
 7. After generating while signed in, open **History** — the item should appear without manual refresh.
 8. Click a history item to load it into the generate page; delete removes it from your account.
 
+**Mock API (signed in):**
+
+9. After generating JSON, click **Mock API** on the JSON viewer — opens `/tools/screenshot-json/mock/[id]` (Convex generation id).
+10. Edit response JSON (saves automatically when valid), then `GET /api/screenshot-json/mock/[id]` in Postman or curl — returns the saved payload with `Content-Type: application/json`.
+11. **Disable mock API** — the public GET returns `404` with `{ "error": "Mock API not found" }`.
+12. Visit `/tools/screenshot-json/mock/[id]` while signed out — redirects to sign-in.
+13. Non-owners cannot edit another user's mock (editor shows not found).
+
 ### Screenshot → JSON
 
 Open the tool from the **Screenshot → JSON** button in the main header toolbar, or go directly to [`/tools/screenshot-json`](/tools/screenshot-json).
 
 Upload a UI screenshot (PNG/JPG/WebP, max 10MB). The pipeline runs OCR (Tesseract.js) and AI layout analysis (Groq vision) server-side and returns structured JSON with a live preview. **Sign in with Google** is required to generate. Successful generations are saved to your account in Convex (last 20 items) and appear at [`/tools/screenshot-json/history`](/tools/screenshot-json/history) — the **History** tab is visible only when signed in.
+
+**Mock API:** When signed in, use **Mock API** on the JSON viewer to open an editor at `/tools/screenshot-json/mock/[id]`. The public endpoint `GET /api/screenshot-json/mock/[id]` returns your saved JSON (for Postman, curl, or frontend fetch). Editing is owner-only; reading is public while the mock is enabled.
 
 **Deployment note (Netlify):** OCR + AI can take 15–60 seconds locally (`maxDuration = 120`). Netlify function timeouts default to 10s (26s max on Pro). For reliable production runs, request a timeout increase from Netlify support or run the feature locally with `npm run dev`.
 
@@ -229,12 +241,14 @@ json-vibe/
 │   ├── sign-up/[[...sign-up]]/page.tsx     # Google-only sign-up
 │   ├── api/
 │   │   └── screenshot-json/
-│   │       └── generate/route.ts           # OCR + AI pipeline API route
+│   │       ├── generate/route.ts           # OCR + AI pipeline API route
+│   │       └── mock/[id]/route.ts          # Public mock API GET
 │   └── tools/
 │       └── screenshot-json/
 │           ├── layout.tsx                  # Screenshot tool layout & metadata
 │           ├── page.tsx                    # Upload, generate, preview UI
-│           └── history/page.tsx            # Convex-backed generation history
+│           ├── history/page.tsx            # Convex-backed generation history
+│           └── mock/[id]/page.tsx          # Owner-only mock API JSON editor
 ├── components/
 │   ├── Header.tsx                          # Header toolbar, share actions, auth menu
 │   ├── auth-user-menu.tsx                  # Clerk SignedIn/SignedOut controls
@@ -256,7 +270,9 @@ json-vibe/
 ├── hooks/
 │   ├── useUrlState.ts                      # URL-based state with compression
 │   ├── use-generate.ts                     # Screenshot generation hook
-│   └── use-history.ts                      # Convex history hook
+│   ├── use-history.ts                      # Convex history hook
+│   ├── use-mock-api-nav.ts                 # Mock API navigation + ensure generation
+│   └── use-mock-api-editor.ts              # Mock API editor queries/mutations
 ├── convex/
 │   ├── schema.ts                           # generations table schema
 │   ├── generations.ts                      # create, listForUser, remove

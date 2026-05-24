@@ -25,6 +25,7 @@ export default function HistoryPage() {
 
   const handleLoad = (item: GenerationListItem) => {
     loadFromHistory({
+      id: item.id,
       thumbnail: item.thumbnail,
       ocr: item.ocr,
       uiJson: item.uiJson,
