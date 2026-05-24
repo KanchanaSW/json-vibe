@@ -1,5 +1,6 @@
 [build]
-  command = "npm run build"
+  # CONVEX_DEPLOY_KEY must be set in Netlify (Convex dashboard → Production deploy key).
+  command = "npx convex deploy --cmd-url-env-var-name NEXT_PUBLIC_CONVEX_URL --cmd 'npm run build'"
   publish = ".next"
 
 # Configure secrets scanning to omit NEXT_PUBLIC_GA_MEASUREMENT_ID

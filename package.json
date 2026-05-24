@@ -6,7 +6,7 @@
     "dev": "next dev",
     "dev:convex": "convex dev",
     "convex:codegen": "convex codegen",
-    "build": "convex codegen && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },

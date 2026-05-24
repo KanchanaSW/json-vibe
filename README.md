@@ -141,6 +141,7 @@ Generation history and mock API payloads are stored in [Convex](https://convex.d
 | `CLERK_JWT_ISSUER_DOMAIN` | Clerk Frontend API URL for Convex JWT validation |
 | `NEXT_PUBLIC_CONVEX_URL` | Convex deployment client URL |
 | `CONVEX_DEPLOYMENT` | Convex deployment name (set by `npx convex dev`) |
+| `CONVEX_DEPLOY_KEY` | Netlify/CI only — production or preview deploy key from Convex dashboard |
 
 ### Route access
 
@@ -198,13 +199,31 @@ When signed in, click **Mock API** on the generated JSON viewer to open the edit
 
 If generation was not saved to Convex (no `generationId`), clicking **Mock API** creates a generation record from the current store state, then navigates to the editor.
 
-**Deployment note (Netlify):** OCR + AI can take 15–60 seconds locally (`maxDuration = 120`). Netlify function timeouts default to 10s (26s max on Pro). For reliable production runs, request a timeout increase from Netlify support or run the feature locally with `npm run dev`.
+**Deployment (Netlify + Convex):**
+
+1. In the [Convex dashboard](https://dashboard.convex.dev/), open your **production** deployment → **Settings** → **Deploy keys** → **Generate Production Deploy Key**.
+2. In Netlify → **Site configuration** → **Environment variables**, add `CONVEX_DEPLOY_KEY` with that key (scope to Production; use a separate Preview deploy key for deploy previews if needed).
+3. Set the same Clerk/Convex vars you use locally (`NEXT_PUBLIC_CONVEX_URL` is injected at build time by `convex deploy`; you can still set it manually if you skip `convex deploy`):
+   - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, Clerk URL vars
+   - `GROQ_API_KEY`
+   - `CLERK_JWT_ISSUER_DOMAIN` on the Convex deployment (`npx convex env set CLERK_JWT_ISSUER_DOMAIN …`)
+4. `netlify.toml` runs `npx convex deploy --cmd 'npm run build'`, which deploys Convex functions, runs codegen, and sets `NEXT_PUBLIC_CONVEX_URL` for the Next.js build.
+
+**Netlify timeouts:** OCR + AI can take 15–60 seconds locally (`maxDuration = 120`). Netlify function timeouts default to 10s (26s max on Pro). For reliable production runs, request a timeout increase from Netlify support or run the feature locally with `npm run dev`.
 
 ### Build for Production
+
+Local (with Convex dev running or after `npx convex codegen`):
 
 ```bash
 npm run build
 npm start
+```
+
+CI / Netlify (requires `CONVEX_DEPLOY_KEY`):
+
+```bash
+npx convex deploy --cmd-url-env-var-name NEXT_PUBLIC_CONVEX_URL --cmd 'npm run build'
 ```
 
 ## 🛠️ Tech Stack
