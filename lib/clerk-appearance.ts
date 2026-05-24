@@ -15,7 +15,7 @@ export const clerkAppearance: Appearance = {
     socialButtonsVariant: "blockButton",
   },
   elements: {
-    rootBox: "mx-auto w-full",
+    rootBox: "mx-auto",
     card: "bg-zinc-950 border border-white/10 shadow-none",
     headerTitle: "text-white",
     headerSubtitle: "text-zinc-400",
