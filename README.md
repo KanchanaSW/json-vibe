@@ -24,6 +24,7 @@ A modern, ultra-minimalist dark mode JSON Editor built with Next.js, React, and 
 - 📱 **QR Code Sharing** - Generate QR codes for instant mobile sharing
 - 📐 **Fully Responsive** - Works seamlessly on all device sizes with mobile-optimized UI
 - 📸 **Screenshot → JSON** - Upload UI screenshots, run OCR + AI layout analysis, preview semantic JSON (header toolbar or [`/tools/screenshot-json`](/tools/screenshot-json))
+- 🌐 **Mock API from JSON** - Turn generated UI JSON into a public `GET` endpoint for Postman, curl, or frontend prototypes (signed-in editor, auto-save)
 - ⚡ **Fast & Modern** - Built with Next.js 14 App Router for optimal performance
 - 🎯 **Mostly Client-side** - JSON editor runs fully in the browser; screenshot analysis uses a server API route
 
@@ -73,7 +74,7 @@ NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/
 NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/
 CLERK_JWT_ISSUER_DOMAIN=https://your-clerk-frontend-api.clerk.accounts.dev
 
-# Convex — generation history storage (see Convex section below)
+# Convex — generation history + mock API payloads (see Convex section below)
 NEXT_PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
 CONVEX_DEPLOYMENT=dev:your-deployment
 ```
@@ -88,7 +89,7 @@ To get your Google Analytics Measurement ID:
 
 4. Run the development servers:
 
-In one terminal, start Convex (required for generation history):
+In one terminal, start Convex (required for generation history and mock APIs):
 
 ```bash
 npm run dev:convex
@@ -109,7 +110,7 @@ pnpm dev
 
 ## Authentication (Clerk — Google only)
 
-Screenshot → JSON generation and history require Google sign-in via [Clerk](https://clerk.com). The main JSON editor at `/` remains fully public.
+Screenshot → JSON generation, history, and mock API editing require Google sign-in via [Clerk](https://clerk.com). The main JSON editor at `/` and public mock API reads (`GET /api/screenshot-json/mock/[id]`) do not require sign-in.
 
 ### Clerk dashboard setup
 
@@ -124,7 +125,7 @@ Do not enable email/password, magic links, phone, or other OAuth providers.
 
 ### Clerk ↔ Convex auth
 
-Generation history is stored in [Convex](https://convex.dev) and scoped per signed-in user.
+Generation history and mock API payloads are stored in [Convex](https://convex.dev) on the `generations` table, scoped per signed-in user.
 
 1. In the Clerk Dashboard, activate the [Convex integration](https://dashboard.clerk.com/apps/setup/convex) — this creates a JWT template named `convex`.
 2. Copy your Clerk **Frontend API URL** (issuer domain) into `.env.local` as `CLERK_JWT_ISSUER_DOMAIN` (e.g. `https://your-app.clerk.accounts.dev`).
@@ -153,11 +154,11 @@ Generation history is stored in [Convex](https://convex.dev) and scoped per sign
 | Route | Access |
 |-------|--------|
 | `/` | Public — full JSON editor |
-| `/tools/screenshot-json` | Public to view; **Generate** and **History** tab require Google sign-in |
+| `/tools/screenshot-json` | Public to view; **Mock API** button and **History** tab require Google sign-in |
 | `/tools/screenshot-json/history` | Requires Google sign-in |
-| `/tools/screenshot-json/mock/[id]` | Requires Google sign-in; owner-only editor |
-| `GET /api/screenshot-json/mock/[id]` | Public read when mock API is enabled |
-| `POST /api/screenshot-json/generate` | Requires Google sign-in (401 if anonymous) |
+| `/tools/screenshot-json/mock/[id]` | Requires Google sign-in; owner-only editor (auto-saves valid JSON) |
+| `GET /api/screenshot-json/mock/[id]` | Public read when mock API is enabled; CORS `*` for cross-origin testing |
+| `POST /api/screenshot-json/generate` | Works without sign-in; Convex save + `generationId` only when signed in |
 | `/sign-in`, `/sign-up` | Public auth pages (Google button only) |
 
 ### Testing locally
@@ -173,11 +174,16 @@ Generation history is stored in [Convex](https://convex.dev) and scoped per sign
 
 **Mock API (signed in):**
 
-9. After generating JSON, click **Mock API** on the JSON viewer — opens `/tools/screenshot-json/mock/[id]` (Convex generation id).
-10. Edit response JSON (saves automatically when valid), then `GET /api/screenshot-json/mock/[id]` in Postman or curl — returns the saved payload with `Content-Type: application/json`.
-11. **Disable mock API** — the public GET returns `404` with `{ "error": "Mock API not found" }`.
-12. Visit `/tools/screenshot-json/mock/[id]` while signed out — redirects to sign-in.
-13. Non-owners cannot edit another user's mock (editor shows not found).
+9. After generating JSON, click **Mock API** on the JSON viewer — opens `/tools/screenshot-json/mock/[id]` (Convex `_id` from the saved generation).
+10. Edit response JSON in the editor; valid changes **auto-save** after a short debounce (no Save button). Invalid JSON shows **Invalid JSON** and is not written to Convex.
+11. Copy the public URL from the editor, then test with Postman, curl, or `fetch`:
+    ```bash
+    curl http://localhost:3000/api/screenshot-json/mock/YOUR_GENERATION_ID
+    ```
+    Success returns the raw JSON body with `Content-Type: application/json`. Other HTTP methods return `405`.
+12. **Disable mock API** — the public GET returns `404` with `{ "error": "Mock API not found" }`. Valid edits after disable re-enable the endpoint.
+13. Visit `/tools/screenshot-json/mock/[id]` while signed out — redirects to `/sign-in`.
+14. Non-owners cannot edit another user's mock (editor shows not found).
 
 ### Screenshot → JSON
 
@@ -185,7 +191,19 @@ Open the tool from the **Screenshot → JSON** button in the main header toolbar
 
 Upload a UI screenshot (PNG/JPG/WebP, max 10MB). The pipeline runs OCR (Tesseract.js) and AI layout analysis (Groq vision) server-side and returns structured JSON with a live preview. **Sign in with Google** is required to generate. Successful generations are saved to your account in Convex (last 20 items) and appear at [`/tools/screenshot-json/history`](/tools/screenshot-json/history) — the **History** tab is visible only when signed in.
 
-**Mock API:** When signed in, use **Mock API** on the JSON viewer to open an editor at `/tools/screenshot-json/mock/[id]`. The public endpoint `GET /api/screenshot-json/mock/[id]` returns your saved JSON (for Postman, curl, or frontend fetch). Editing is owner-only; reading is public while the mock is enabled.
+#### Mock API
+
+When signed in, click **Mock API** on the generated JSON viewer to open the editor at `/tools/screenshot-json/mock/[id]`, where `[id]` is the Convex generation document id.
+
+| Concern | Behavior |
+|---------|----------|
+| **Create** | First visit enables the mock and seeds payload from `uiJson` |
+| **Edit** | CodeMirror editor; auto-saves valid JSON (~600ms debounce) |
+| **Public read** | `GET /api/screenshot-json/mock/[id]` — no auth; CORS enabled |
+| **Disable** | Owner can disable; GET returns 404 until re-enabled by a valid save |
+| **Access** | Editor: sign-in + owner only. Read: anyone with the URL while enabled |
+
+If generation was not saved to Convex (no `generationId`), clicking **Mock API** creates a generation record from the current store state, then navigates to the editor.
 
 **Deployment note (Netlify):** OCR + AI can take 15–60 seconds locally (`maxDuration = 120`). Netlify function timeouts default to 10s (26s max on Pro). For reliable production runs, request a timeout increase from Netlify support or run the feature locally with `npm run dev`.
 
@@ -216,7 +234,7 @@ npm start
 - **Zod** - API response validation
 - **Zustand** - Screenshot → JSON feature state
 - **Clerk** - Google-only authentication for screenshot features
-- **Convex** - Per-user generation history storage
+- **Convex** - Per-user generation history and mock API payload storage
 
 ## Convex setup
 
@@ -227,7 +245,7 @@ npm start
 
 For production, run `npx convex deploy` and set the same environment variables on your hosting provider and Convex dashboard.
 
-Thumbnails are stored as compressed JPEG data URLs in Convex documents (small ~200px wide thumbs). File storage via Convex actions can be added later if needed.
+Each `generations` document stores OCR output, `uiJson`, optional thumbnail, and optional mock API fields (`mockApiEnabled`, `mockApiJson`, `mockApiUpdatedAt`). Thumbnails are compressed JPEG data URLs (~200px wide). File storage via Convex actions can be added later if needed.
 
 ## 📁 Project Structure
 
@@ -265,7 +283,7 @@ json-vibe/
 │       ├── feature-header.tsx              # Tool header with Generate/History tabs
 │       ├── upload-zone.tsx                 # Drag-and-drop image upload
 │       ├── process-pipeline.tsx            # Pipeline status UI
-│       ├── json/json-viewer.tsx            # Generated JSON viewer
+│       ├── json/json-viewer.tsx            # JSON viewer (Mock API nav when signed in)
 │       └── preview/                        # Live UI preview from semantic JSON
 ├── hooks/
 │   ├── useUrlState.ts                      # URL-based state with compression
@@ -274,12 +292,12 @@ json-vibe/
 │   ├── use-mock-api-nav.ts                 # Mock API navigation + ensure generation
 │   └── use-mock-api-editor.ts              # Mock API editor queries/mutations
 ├── convex/
-│   ├── schema.ts                           # generations table schema
-│   ├── generations.ts                      # create, listForUser, remove
+│   ├── schema.ts                           # generations table (+ mock API fields)
+│   ├── generations.ts                      # CRUD, getPublicMock, mock enable/update/disable
 │   └── auth.config.ts                      # Clerk JWT auth config
 ├── lib/
 │   ├── clerk-appearance.ts                 # Clerk dark theme (Google-only UI)
-│   ├── convex-server.ts                    # Server-side Convex HTTP client
+│   ├── convex-server.ts                    # saveGeneration, fetchPublicMock (server)
 │   ├── schemas.ts                          # Zod schemas
 │   ├── normalize-ui.ts                     # UI JSON normalization
 │   └── coerce-ai-ui.ts                     # AI output coercion
@@ -323,6 +341,7 @@ The color scheme and styling can be customized in `tailwind.config.ts`. The desi
 12. **Visualize**: Click "Visualize" in the tree view to generate an interactive graph diagram of your JSON structure
 13. **Import cURL**: Click "Import cURL" in the tree view to fetch data from an API endpoint
 14. **Screenshot → JSON**: Click **Screenshot → JSON** in the header to upload a UI screenshot, generate semantic JSON, and preview the layout
+15. **Mock API**: After generating while signed in, click **Mock API** to edit the public response JSON; test with `GET /api/screenshot-json/mock/[id]`
 
 ## 🔗 URL State Management
 
