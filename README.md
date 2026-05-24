@@ -11,19 +11,19 @@ A modern, ultra-minimalist dark mode JSON Editor built with Next.js, React, and 
 - 🌳 **Interactive Tree Viewer** - Visualize JSON structure with expand/collapse functionality (desktop only)
 - ✅ **Real-time Validation** - Instant JSON validation feedback with visual indicators
 - 📊 **Size Analytics** - Real-time size calculation (raw vs minified) and character count
--  **Smart Diff Viewer** - Compare original vs modified JSON with Split/Unified views and toggleable formatting
+- 🔀 **Smart Diff Viewer** - Compare original vs modified JSON with Split/Unified views and toggleable formatting
 - 🔎 **JSONPath Filtering** - Filter and query your JSON data in real-time using standard JSONPath syntax
--  **Format & Minify** - One-click JSON formatting with proper indentation or minification
+- 🧹 **Format & Minify** - One-click JSON formatting with proper indentation or minification
 - 🔄 **Format Conversion** - Convert JSON to YAML, XML, or CSV with real-time preview and syntax highlighting
-- � **URL-based State** - JSON state automatically stored in URL hash with LZ-String compression
--  **Share & Copy Link** - Easy sharing via URL with native Web Share API support
+- 🔗 **URL-based State** - JSON state automatically stored in URL hash with LZ-String compression
+- 📤 **Share & Copy Link** - Easy sharing via URL with native Web Share API support
 - 📦 **Data Model Generation** - Generate TypeScript, Kotlin, Java, Rust, Go, and Swift models from your JSON
 - 🕸️ **Schema Visualization** - Interactive ERD-style visualization of JSON structure with image export
--  **Secure Sharing** - Password protect your JSON data with AES-GCM encryption before sharing
+- 🔒 **Secure Sharing** - Password protect your JSON data with AES-GCM encryption before sharing
 - 🔌 **Import from cURL** - Fetch JSON data directly by pasting cURL commands (client-side execution)
-- � **QR Code Sharing** - Generate QR codes for instant mobile sharing
--  **Fully Responsive** - Works seamlessly on all device sizes with mobile-optimized UI
-- 📸 **Screenshot → JSON** - Upload UI screenshots, run OCR + AI layout analysis, preview semantic JSON ([`/tools/screenshot-json`](/tools/screenshot-json))
+- 📱 **QR Code Sharing** - Generate QR codes for instant mobile sharing
+- 📐 **Fully Responsive** - Works seamlessly on all device sizes with mobile-optimized UI
+- 📸 **Screenshot → JSON** - Upload UI screenshots, run OCR + AI layout analysis, preview semantic JSON (header toolbar or [`/tools/screenshot-json`](/tools/screenshot-json))
 - ⚡ **Fast & Modern** - Built with Next.js 14 App Router for optimal performance
 - 🎯 **Mostly Client-side** - JSON editor runs fully in the browser; screenshot analysis uses a server API route
 
@@ -31,7 +31,7 @@ A modern, ultra-minimalist dark mode JSON Editor built with Next.js, React, and 
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - npm, yarn, or pnpm
 
 ### Installation
@@ -55,7 +55,7 @@ pnpm install
 
 3. Set up environment variables:
 
-Copy `.env.example` to `.env.local` and configure as needed:
+Create `.env.local` in the project root:
 
 ```bash
 # Optional — Google Analytics
@@ -85,7 +85,9 @@ pnpm dev
 
 ### Screenshot → JSON
 
-Navigate to [`/tools/screenshot-json`](/tools/screenshot-json) to upload a UI screenshot (PNG/JPG/WebP, max 10MB). The pipeline runs OCR (Tesseract.js) and AI layout analysis (Groq vision) server-side and returns structured JSON with a live preview.
+Open the tool from the **Screenshot → JSON** button in the main header toolbar, or go directly to [`/tools/screenshot-json`](/tools/screenshot-json).
+
+Upload a UI screenshot (PNG/JPG/WebP, max 10MB). The pipeline runs OCR (Tesseract.js) and AI layout analysis (Groq vision) server-side and returns structured JSON with a live preview. Generated results are saved to local history at [`/tools/screenshot-json/history`](/tools/screenshot-json/history).
 
 **Deployment note (Netlify):** OCR + AI can take 15–60 seconds locally (`maxDuration = 120`). Netlify function timeouts default to 10s (26s max on Pro). For reliable production runs, request a timeout increase from Netlify support or run the feature locally with `npm run dev`.
 
@@ -121,23 +123,53 @@ npm start
 ```
 json-vibe/
 ├── app/
-│   ├── layout.tsx              # Root layout with metadata
-│   ├── page.tsx                # Main application page
-│   └── globals.css             # Global styles and Tailwind imports
+│   ├── layout.tsx                          # Root layout with metadata
+│   ├── page.tsx                            # Main JSON editor page
+│   ├── globals.css                         # Global styles and Tailwind imports
+│   ├── api/
+│   │   └── screenshot-json/
+│   │       └── generate/route.ts           # OCR + AI pipeline API route
+│   └── tools/
+│       └── screenshot-json/
+│           ├── layout.tsx                  # Screenshot tool layout & metadata
+│           ├── page.tsx                    # Upload, generate, preview UI
+│           └── history/page.tsx            # Local generation history
 ├── components/
-│   ├── Header.tsx              # Header with toolbar, share, and copy link buttons
-│   ├── JsonEditor.tsx         # Main JSON editor component
-│   ├── JsonEditorCodeMirror.tsx # CodeMirror implementation
-│   ├── JsonTreeViewer.tsx     # Interactive JSON tree visualization
-│   ├── DataModelModal.tsx     # Modal for generating data models
-│   ├── FormatConverterModal.tsx # Modal for converting JSON to other formats
-│   ├── JsonVisualizerModal.tsx # Modal for visualizing JSON schema graph
-│   └── DiffViewer.tsx         # Side-by-side diff comparison component
+│   ├── Header.tsx                          # Header toolbar, share actions, Screenshot → JSON link
+│   ├── JsonEditor.tsx                      # Main JSON editor component
+│   ├── JsonEditorCodeMirror.tsx            # CodeMirror implementation
+│   ├── JsonTreeViewer.tsx                  # Interactive JSON tree visualization
+│   ├── DataModelModal.tsx                  # Generate TypeScript/Kotlin/Java/Rust/Go/Swift models
+│   ├── FormatConverterModal.tsx            # Convert JSON to YAML, XML, or CSV
+│   ├── JsonVisualizerModal.tsx             # ERD-style JSON schema graph
+│   ├── DiffViewer.tsx                      # Side-by-side diff comparison
+│   ├── CurlImportModal.tsx                 # Import JSON via cURL
+│   └── screenshot-json/                    # Screenshot → JSON UI components
+│       ├── feature-header.tsx              # Tool header with Generate/History tabs
+│       ├── upload-zone.tsx                 # Drag-and-drop image upload
+│       ├── process-pipeline.tsx            # Pipeline status UI
+│       ├── json/json-viewer.tsx            # Generated JSON viewer
+│       └── preview/                        # Live UI preview from semantic JSON
 ├── hooks/
-│   └── useUrlState.ts         # URL-based state management with compression
-├── tailwind.config.ts         # Tailwind configuration with custom theme
-├── next.config.js             # Next.js configuration
-└── package.json               # Dependencies and scripts
+│   ├── useUrlState.ts                      # URL-based state with compression
+│   ├── use-generate.ts                     # Screenshot generation hook
+│   └── use-history.ts                      # Local history hook
+├── lib/
+│   ├── history.ts                          # History storage helpers
+│   ├── schemas.ts                          # Zod schemas
+│   ├── normalize-ui.ts                     # UI JSON normalization
+│   └── coerce-ai-ui.ts                     # AI output coercion
+├── services/
+│   ├── ocr.ts                              # Tesseract.js OCR
+│   └── groq-parser.ts                      # Groq vision layout analysis
+├── store/
+│   └── screenshot-json-store.ts            # Zustand store for screenshot tool
+├── types/
+│   ├── ui-schema.ts                        # Semantic UI JSON types
+│   └── ocr.ts                              # OCR result types
+├── tailwind.config.ts                      # Tailwind configuration with custom theme
+├── next.config.js                          # Next.js configuration (Tesseract WASM tracing)
+└── package.json                            # Dependencies and scripts
 ```
 
 ## 🎨 Customization
@@ -164,6 +196,7 @@ The color scheme and styling can be customized in `tailwind.config.ts`. The desi
 11. **Compare Changes**: Click the "Diff" button (visible when modified) to toggle a powerful diff view with split/unified modes
 12. **Visualize**: Click "Visualize" in the tree view to generate an interactive graph diagram of your JSON structure
 13. **Import cURL**: Click "Import cURL" in the tree view to fetch data from an API endpoint
+14. **Screenshot → JSON**: Click **Screenshot → JSON** in the header to upload a UI screenshot, generate semantic JSON, and preview the layout
 
 ## 🔗 URL State Management
 
