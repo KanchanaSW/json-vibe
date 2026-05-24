@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowLeft, ImageIcon } from "lucide-react";
+import { AuthUserMenu } from "@/components/auth-user-menu";
 
 export default function FeatureHeader() {
   const pathname = usePathname();
@@ -27,28 +28,31 @@ export default function FeatureHeader() {
           </span>
         </div>
       </div>
-      <nav className="flex items-center gap-1 bg-black/40 rounded-lg p-1 border border-white/5">
-        <Link
-          href="/tools/screenshot-json"
-          className={`px-3 py-1.5 text-xs rounded-md font-medium transition-all ${
-            isGenerate
-              ? "bg-primary text-white shadow-neon"
-              : "text-zinc-500 hover:text-zinc-300"
-          }`}
-        >
-          Generate
-        </Link>
-        <Link
-          href="/tools/screenshot-json/history"
-          className={`px-3 py-1.5 text-xs rounded-md font-medium transition-all ${
-            isHistory
-              ? "bg-primary text-white shadow-neon"
-              : "text-zinc-500 hover:text-zinc-300"
-          }`}
-        >
-          History
-        </Link>
-      </nav>
+      <div className="flex items-center gap-3">
+        <nav className="flex items-center gap-1 bg-black/40 rounded-lg p-1 border border-white/5">
+          <Link
+            href="/tools/screenshot-json"
+            className={`px-3 py-1.5 text-xs rounded-md font-medium transition-all ${
+              isGenerate
+                ? "bg-primary text-white shadow-neon"
+                : "text-zinc-500 hover:text-zinc-300"
+            }`}
+          >
+            Generate
+          </Link>
+          <Link
+            href="/tools/screenshot-json/history"
+            className={`px-3 py-1.5 text-xs rounded-md font-medium transition-all ${
+              isHistory
+                ? "bg-primary text-white shadow-neon"
+                : "text-zinc-500 hover:text-zinc-300"
+            }`}
+          >
+            History
+          </Link>
+        </nav>
+        <AuthUserMenu />
+      </div>
     </header>
   );
 }

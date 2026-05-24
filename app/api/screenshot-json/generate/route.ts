@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import { runOcr } from "@/services/ocr";
 import {
   isAiTimeoutError,
@@ -30,6 +31,16 @@ function errorResponse(
 }
 
 export async function POST(request: Request) {
+  const { userId } = await auth();
+  if (!userId) {
+    return errorResponse(
+      "Sign in with Google required",
+      "validation",
+      false,
+      401
+    );
+  }
+
   try {
     const formData = await request.formData();
     const file = formData.get("file");

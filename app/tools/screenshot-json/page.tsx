@@ -95,6 +95,7 @@ export default function ScreenshotJsonPage() {
         <Toast
           type={toast.type}
           message={toast.message}
+          action={toast.action}
           onDismiss={() => setToast(null)}
         />
       )}

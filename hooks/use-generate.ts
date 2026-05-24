@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { addHistoryItem } from "@/lib/history";
 import { useScreenshotJsonStore } from "@/store/screenshot-json-store";
 import type { ApiErrorResponse, GenerateResponse } from "@/types/ui-schema";
@@ -8,10 +9,12 @@ import type { ApiErrorResponse, GenerateResponse } from "@/types/ui-schema";
 export interface ToastMessage {
   type: "success" | "warning" | "error";
   message: string;
+  action?: { label: string; href: string };
 }
 
 export function useGenerate(onToast?: (toast: ToastMessage) => void) {
   const abortRef = useRef<AbortController | null>(null);
+  const { isSignedIn } = useAuth();
   const {
     imageFile,
     thumbnailUrl,
@@ -28,6 +31,15 @@ export function useGenerate(onToast?: (toast: ToastMessage) => void) {
 
   const generate = useCallback(async () => {
     if (!imageFile) return;
+
+    if (!isSignedIn) {
+      onToast?.({
+        type: "error",
+        message: "Sign in with Google to use Screenshot → JSON",
+        action: { label: "Sign in", href: "/sign-in" },
+      });
+      return;
+    }
 
     abortRef.current?.abort();
     const controller = new AbortController();
@@ -89,7 +101,7 @@ export function useGenerate(onToast?: (toast: ToastMessage) => void) {
       setError(apiError);
       onToast?.({ type: "error", message: apiError.error });
     }
-  }, [imageFile, thumbnailUrl, setStatus, setResult, setError, onToast]);
+  }, [imageFile, thumbnailUrl, isSignedIn, setStatus, setResult, setError, onToast]);
 
   const retry = useCallback(() => {
     const { error } = useScreenshotJsonStore.getState();

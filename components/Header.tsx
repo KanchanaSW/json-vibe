@@ -18,6 +18,7 @@ import {
   ImageIcon,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
+import { AuthUserMenu } from "@/components/auth-user-menu";
 
 interface HeaderProps {
   isValid?: boolean;
@@ -354,14 +355,14 @@ export default function Header({
           )}
 
           {/* Copy Link Button (Desktop only) */}
-          <SimpleTooltip text="Copy Link">
+          {/* <SimpleTooltip text="Copy Link">
             <button
               onClick={handleCopyLink}
               className="hidden sm:flex items-center gap-2 h-9 px-4 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-sm font-medium rounded-lg border border-zinc-800 transition-all"
             >
               <Link2 size={16} /> Copy Link
             </button>
-          </SimpleTooltip>
+          </SimpleTooltip> */}
 
           {/* Primary Share Button (Native Share) */}
           <SimpleTooltip text="Share">
@@ -372,6 +373,8 @@ export default function Header({
               <Share2 size={16} /> Share
             </button>
           </SimpleTooltip>
+
+          <AuthUserMenu />
         </div>
       </header>
 

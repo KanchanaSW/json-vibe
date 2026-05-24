@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { ClerkProvider } from '@clerk/nextjs'
 import { GoogleAnalytics } from '@next/third-parties/google'
 import './globals.css'
 
@@ -96,10 +97,12 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className="h-screen flex flex-col overflow-hidden selection:bg-primary/30 selection:text-white">
-        {children}
-        {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
-          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
-        )}
+        <ClerkProvider>
+          {children}
+          {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
+            <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+          )}
+        </ClerkProvider>
       </body>
     </html>
   )

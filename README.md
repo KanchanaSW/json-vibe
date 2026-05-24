@@ -63,7 +63,17 @@ NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
 
 # Required for Screenshot → JSON feature (/tools/screenshot-json)
 GROQ_API_KEY=gsk_...
+
+# Clerk — Google-only auth (see Authentication section below)
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+CLERK_SECRET_KEY=sk_test_...
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/
+NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/
 ```
+
+Copy `.env.example` as a starting point if you prefer placeholder values.
 
 To get your Google Analytics Measurement ID:
 - Go to [Google Analytics](https://analytics.google.com/)
@@ -83,11 +93,56 @@ pnpm dev
 
 5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+## Authentication (Clerk — Google only)
+
+Screenshot → JSON generation and history require Google sign-in via [Clerk](https://clerk.com). The main JSON editor at `/` remains fully public.
+
+### Clerk dashboard setup
+
+1. Create a Clerk application (choose **Next.js**).
+2. **User & authentication → Email, phone, username**: disable email/password sign-up and sign-in (social-only).
+3. **User & authentication → Social connections**: enable **Google only**; disable GitHub, Apple, and all other providers.
+4. Copy your **Publishable key** and **Secret key** into `.env.local`.
+5. **Local development**: Clerk provides shared Google OAuth credentials for `localhost` — no Google Cloud setup needed.
+6. **Production**: create a Google Cloud OAuth 2.0 client and add the authorized redirect URIs shown in the Clerk dashboard. See [Clerk Google docs](https://clerk.com/docs/authentication/social-connections/google).
+
+Do not enable email/password, magic links, phone, or other OAuth providers.
+
+### Environment variables
+
+| Variable | Purpose |
+|----------|---------|
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key |
+| `CLERK_SECRET_KEY` | Clerk secret key (server-only) |
+| `NEXT_PUBLIC_CLERK_SIGN_IN_URL` | Sign-in page path (`/sign-in`) |
+| `NEXT_PUBLIC_CLERK_SIGN_UP_URL` | Sign-up page path (`/sign-up`) |
+| `NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL` | Redirect after sign-in (`/`) |
+| `NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL` | Redirect after sign-up (`/`) |
+
+### Route access
+
+| Route | Access |
+|-------|--------|
+| `/` | Public — full JSON editor |
+| `/tools/screenshot-json` | Public to view; **Generate** requires Google sign-in |
+| `/tools/screenshot-json/history` | Requires Google sign-in |
+| `POST /api/screenshot-json/generate` | Requires Google sign-in (401 if anonymous) |
+| `/sign-in`, `/sign-up` | Public auth pages (Google button only) |
+
+### Testing locally
+
+1. Set Clerk keys in `.env.local` and configure Google-only in the Clerk dashboard.
+2. Run `npm run dev` and open `/` — editor works without login.
+3. Visit `/tools/screenshot-json`, upload an image, click **Generate JSON** while signed out — toast prompts sign-in.
+4. Sign in at `/sign-in` (only Google button should appear).
+5. After sign-in, generate should succeed (requires valid `GROQ_API_KEY`).
+6. Visit `/tools/screenshot-json/history` while signed out — redirects to `/sign-in`.
+
 ### Screenshot → JSON
 
 Open the tool from the **Screenshot → JSON** button in the main header toolbar, or go directly to [`/tools/screenshot-json`](/tools/screenshot-json).
 
-Upload a UI screenshot (PNG/JPG/WebP, max 10MB). The pipeline runs OCR (Tesseract.js) and AI layout analysis (Groq vision) server-side and returns structured JSON with a live preview. Generated results are saved to local history at [`/tools/screenshot-json/history`](/tools/screenshot-json/history).
+Upload a UI screenshot (PNG/JPG/WebP, max 10MB). The pipeline runs OCR (Tesseract.js) and AI layout analysis (Groq vision) server-side and returns structured JSON with a live preview. **Sign in with Google** is required to generate. Generated results are saved to local history at [`/tools/screenshot-json/history`](/tools/screenshot-json/history) (sign-in required).
 
 **Deployment note (Netlify):** OCR + AI can take 15–60 seconds locally (`maxDuration = 120`). Netlify function timeouts default to 10s (26s max on Pro). For reliable production runs, request a timeout increase from Netlify support or run the feature locally with `npm run dev`.
 
@@ -117,15 +172,18 @@ npm start
 - **Tesseract.js** - Server-side OCR
 - **Zod** - API response validation
 - **Zustand** - Screenshot → JSON feature state
+- **Clerk** - Google-only authentication for screenshot features
 
 ## 📁 Project Structure
 
 ```
 json-vibe/
 ├── app/
-│   ├── layout.tsx                          # Root layout with metadata
+│   ├── layout.tsx                          # Root layout with ClerkProvider + metadata
 │   ├── page.tsx                            # Main JSON editor page
 │   ├── globals.css                         # Global styles and Tailwind imports
+│   ├── sign-in/[[...sign-in]]/page.tsx     # Google-only sign-in
+│   ├── sign-up/[[...sign-up]]/page.tsx     # Google-only sign-up
 │   ├── api/
 │   │   └── screenshot-json/
 │   │       └── generate/route.ts           # OCR + AI pipeline API route
@@ -135,7 +193,8 @@ json-vibe/
 │           ├── page.tsx                    # Upload, generate, preview UI
 │           └── history/page.tsx            # Local generation history
 ├── components/
-│   ├── Header.tsx                          # Header toolbar, share actions, Screenshot → JSON link
+│   ├── Header.tsx                          # Header toolbar, share actions, auth menu
+│   ├── auth-user-menu.tsx                  # Clerk SignedIn/SignedOut controls
 │   ├── JsonEditor.tsx                      # Main JSON editor component
 │   ├── JsonEditorCodeMirror.tsx            # CodeMirror implementation
 │   ├── JsonTreeViewer.tsx                  # Interactive JSON tree visualization
@@ -155,6 +214,7 @@ json-vibe/
 │   ├── use-generate.ts                     # Screenshot generation hook
 │   └── use-history.ts                      # Local history hook
 ├── lib/
+│   ├── clerk-appearance.ts                 # Clerk dark theme (Google-only UI)
 │   ├── history.ts                          # History storage helpers
 │   ├── schemas.ts                          # Zod schemas
 │   ├── normalize-ui.ts                     # UI JSON normalization
@@ -167,6 +227,7 @@ json-vibe/
 ├── types/
 │   ├── ui-schema.ts                        # Semantic UI JSON types
 │   └── ocr.ts                              # OCR result types
+├── middleware.ts                           # Clerk route protection
 ├── tailwind.config.ts                      # Tailwind configuration with custom theme
 ├── next.config.js                          # Next.js configuration (Tesseract WASM tracing)
 └── package.json                            # Dependencies and scripts
