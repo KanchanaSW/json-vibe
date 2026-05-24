@@ -37,13 +37,6 @@ A modern, ultra-minimalist dark mode JSON Editor built with Next.js, React, and 
 
 ### Installation
 
-1. Clone the repository:
-
-```bash
-git clone <repository-url>
-cd json-vibe
-```
-
 2. Install dependencies:
 
 ```bash
