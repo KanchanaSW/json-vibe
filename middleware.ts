@@ -1,7 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 const isProtectedRoute = createRouteMatcher([
-  "/api/screenshot-json(.*)",
   "/tools/screenshot-json/history(.*)",
 ]);
 

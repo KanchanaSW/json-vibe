@@ -81,6 +81,12 @@ export default function ScreenshotJsonPage() {
                     message: "Copied to clipboard",
                   })
                 }
+                onMockApi={() =>
+                  setToast({
+                    type: "success",
+                    message: "Mock API response copied to clipboard",
+                  })
+                }
               />
             ) : (
               <div className="flex-1 flex items-center justify-center rounded-lg border border-dashed border-white/10 text-zinc-500 text-sm min-h-[400px]">

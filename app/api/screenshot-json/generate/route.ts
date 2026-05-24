@@ -32,15 +32,7 @@ function errorResponse(
 }
 
 export async function POST(request: Request) {
-  const { userId, getToken } = await auth();
-  if (!userId) {
-    return errorResponse(
-      "Sign in with Google required",
-      "validation",
-      false,
-      401
-    );
-  }
+  const { getToken } = await auth();
 
   try {
     const formData = await request.formData();
